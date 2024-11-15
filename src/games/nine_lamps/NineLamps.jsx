@@ -17,6 +17,7 @@ const NineLamps = () => {
     const [counter, setCounter] = useState(TIMER_IN_SECONDS);
     const [cookies, setCookie] = useCookies(['puzzle-solved']);
 
+    // Handle saved state
     useEffect(() => {
         const savedState = cookies['puzzle-solved'];
         if (savedState) {
@@ -34,17 +35,27 @@ const NineLamps = () => {
         }
     }, [cookies]);
 
+    // Handle timer
     useEffect(() => {
+        let timer;
         if (startStopTimer) {
-            if (counter < 1) {
-                setProblemCouldntBeSolved(true);
-                setCookie('puzzle-solved', `failure-${lampsState}`, { path: '/', maxAge: 2000 });
-            }
-            const timer = counter > 0 && setInterval(() => setCounter(counter - 1), 1000);
-            return () => clearInterval(timer);
+            timer = setInterval(() => {
+                setCounter((prevCounter) => prevCounter - 1);
+            }, 1000);
         }
-    }, [counter, startStopTimer, lampsState, setCookie]);
+        return () => clearInterval(timer);
+    }, [startStopTimer]);
 
+    // Handle time out
+    useEffect(() => {
+        if (counter <= 0 && startStopTimer) {
+            setProblemCouldntBeSolved(true);
+            setCookie('puzzle-solved', `failure-${lampsState}`, { path: '/', maxAge: 2000 });
+            setStartStopTimer(false);
+        }
+    }, [counter, startStopTimer, setCookie, lampsState]);
+
+    // Puzzle completion logic 
     useEffect(() => {
         if (arrayEquals(lampsState, WINNING_LAMPS_STATE) && !cookies['puzzle-solved']) {
             setStartStopTimer(false);
