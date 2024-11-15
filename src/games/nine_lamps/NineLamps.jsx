@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import elec_on from '../../img/electricity_on.png';
-import elec_off from '../../img/electricity_off.png';
+import elec_on from '../../img/nine_lamps/electricity_on.png';
+import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
 import { arrayEquals, secondsToTime } from '../../utils/utils';
 
