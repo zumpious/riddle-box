@@ -3,6 +3,7 @@ import { useCookies } from 'react-cookie';
 import elec_on from '../../img/electricity_on.png';
 import elec_off from '../../img/electricity_off.png';
 import Header from './Header';
+import { arrayEquals, secondsToTime } from '../../utils/utils';
 
 const TIMER_IN_SECONDS = 300;
 const INITIAL_LAMPS_STATE = [false, false, false, false, false, false, false, false, false];
@@ -52,9 +53,6 @@ const NineLamps = () => {
         }
     }, [lampsState, cookies, counter, setCookie]);
 
-    //todo add helpers/utils file
-    const arrayEquals = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index]);
-
     const changeLampState = (lamp) => {
         if (problemSolved || problemCouldntBeSolved) return;
         if (!startStopTimer) setStartStopTimer(true);
@@ -100,12 +98,6 @@ const NineLamps = () => {
         if (!problemSolved && !problemCouldntBeSolved) {
             setLampsState(INITIAL_LAMPS_STATE);
         }
-    };
-
-    const secondsToTime = (e) => {
-        const m = Math.floor(e % 3600 / 60).toString().padStart(2, '0');
-        const s = Math.floor(e % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
     };
 
     const renderButton = (index) => (
