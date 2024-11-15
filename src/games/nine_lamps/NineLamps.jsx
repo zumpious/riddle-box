@@ -52,6 +52,7 @@ const NineLamps = () => {
         }
     }, [lampsState, cookies, counter, setCookie]);
 
+    //todo add helpers/utils file
     const arrayEquals = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index]);
 
     const changeLampState = (lamp) => {
