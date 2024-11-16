@@ -1,49 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { CookiesProvider, useCookies } from 'react-cookie';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { CookiesProvider } from 'react-cookie';
 import NineLamps from './games/nine_lamps/NineLamps';
+import Menu from './components/Menu';
 
 const App = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
     <CookiesProvider>
       <Router>
-        <div>
-          <nav className="navbar">
-            <div className="navbar-brand">
-              <Link to="/">RiddleBox</Link>
-              <button className="burger-menu" onClick={toggleMenu}>
-                ☰
-              </button>
-            </div>
-            <ul className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
-              <li>
-                <Link to="/" onClick={toggleMenu}>Home</Link>
-              </li>
-              <li>
-                <Link to="/nine-lamps" onClick={toggleMenu}>Nine Lamps</Link>
-              </li>
-            </ul>
-          </nav>
-
-          <Routes>
-            <Route path="/" element={
-              <div className='homepage'>
-                <h1>Welcome to RiddleBox</h1>
-                <p>Select a game from the menu.</p>
-                <p>This page is still work in progress...</p>
-              </div>
-            } />
-            <Route path="/nine-lamps" element={
-                <NineLamps />
+        <div className="App">
+          <Menu />
+          <div>
+            <Routes>
+              <Route path="/" element={
+                <div className='homepage'>
+                  <h1>Welcome to RiddleBox</h1>
+                  <p>Select a game from the menu.</p>
+                  <p>This page is still work in progress...</p>
+                </div>
               } />
-          </Routes>
+              <Route path="/nine-lamps" element={<NineLamps />} />
+            </Routes>
+          </div>
         </div>
       </Router>
     </CookiesProvider>
