@@ -4,6 +4,7 @@ import elec_on from '../../img/nine_lamps/electricity_on.png';
 import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
 import { arrayEquals, secondsToTime } from '../../utils/utils';
+import './NineLamps.css';
 
 const TIMER_IN_SECONDS = 300;
 const INITIAL_LAMPS_STATE = [false, false, false, false, false, false, false, false, false];
@@ -123,7 +124,7 @@ const NineLamps = () => {
                 <Header />
             </div>
             <div className="content">
-                <div className="nine_lamps_content">
+                <div>
                     <div>
                         <div className="timer">Timer: {secondsToTime(counter)}</div>
                     </div>

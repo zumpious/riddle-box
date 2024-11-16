@@ -1,5 +1,6 @@
-export function Header() {
+import './Header.css';
 
+export function Header() {
     return (
         <div>
             <div className="heading">
@@ -25,7 +26,6 @@ export function Header() {
                 </p>
             </div>
         </div>
-
     );
 }
 

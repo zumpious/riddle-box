@@ -1,0 +1,46 @@
+.content {
+    text-align: center;
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+}
+
+.timer {
+    padding-bottom: 2rem;
+    font-size: 2.5rem;
+}
+
+.row button {
+    margin: 0.6rem;
+    height: 4rem;
+    width: 4rem;
+    font-size: 1.2rem;
+    position: relative;
+    background: transparent;
+    border: none;
+}
+
+.row button img {
+    width: 3rem;
+    height: 3rem;
+}
+
+.reset {
+    padding-top: 2rem;
+}
+  
+.reset button{
+    height: 3rem;
+    width: 14rem;
+    font-size: 1.8rem;
+}
+
+.active {
+    background-color: red;
+}
+  
