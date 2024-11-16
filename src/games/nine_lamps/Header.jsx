@@ -2,7 +2,7 @@ import './Header.css';
 
 export function Header() {
     return (
-        <div>
+        <div className='container'>
             <div className="heading">
                 <h1> PUB QUIZ </h1>
             </div>

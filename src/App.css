@@ -7,4 +7,69 @@
   padding-right: 2rem;
 }
 
-/* Removed menu-related styles */
+.bold {
+  font-weight: bold;
+}
+
+.homepage {
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.intro-text {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.cta-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #0056b3;
+}
+
+.container {
+  padding: 0 2rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 6rem;
+  }
+}
