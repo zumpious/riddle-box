@@ -1,0 +1,19 @@
+.color-code-breaker {
+    text-align: center;
+  }
+  
+  .guess-row {
+    margin: 20px 0;
+  }
+  
+  .guess-row select {
+    margin: 0 5px;
+  }
+  
+  .attempts {
+    margin-top: 20px;
+  }
+  
+  .attempt {
+    margin: 5px 0;
+  }

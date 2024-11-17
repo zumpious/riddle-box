@@ -13,6 +13,9 @@ const Home = () => {
         <Link to="/nine-lamps">
           <button className="riddle-button">Nine Lamps</button>
         </Link>
+        <Link to="/color-code-breaker">
+          <button className="riddle-button">Color Code Breaker</button>
+        </Link>
       </div>
     </div>
   );
