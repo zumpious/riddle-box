@@ -1,7 +1,7 @@
 import React from 'react';
-import './Homepage.css';
+import './Home.css';
 
-const Homepage = () => {
+const Home = () => {
   return (
     <div className='homepage'>
       <div className="welcome-section">
@@ -14,4 +14,4 @@ const Homepage = () => {
   );
 };
 
-export default Homepage;
+export default Home;

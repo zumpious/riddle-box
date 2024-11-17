@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
 import NineLamps from './games/nine_lamps/NineLamps';
 import Menu from './components/Menu';
-import Homepage from './screens/Homepage';
+import Home from './screens/Home';
 
 const App = () => {
   return (
@@ -14,7 +14,7 @@ const App = () => {
           <Menu />
           <div>
             <Routes>
-              <Route path="/" element={<Homepage />} />
+              <Route path="/" element={<Home />} />
               <Route path="/nine-lamps" element={<NineLamps />} />
             </Routes>
           </div>
