@@ -115,7 +115,7 @@ const NineLamps = () => {
 
   const renderButton = (index) => (
     <button onClick={() => changeLampState(index + 1)} className={lampsState[index] ? 'active' : 'not-active'}>
-      <img src={lampsState[index] ? elec_on : elec_off} alt="electricity off" />
+      <img src={lampsState[index] ? elec_on : elec_off} alt="Toggle electricity" />
     </button>
   );
 

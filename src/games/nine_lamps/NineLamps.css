@@ -15,14 +15,21 @@
     font-size: 2.5rem;
 }
 
+.row {
+    display: flex;
+    justify-content: center;
+}
+  
 .row button {
-    margin: 0.6rem;
-    height: 4rem;
-    width: 4rem;
-    font-size: 1.2rem;
-    position: relative;
-    background: transparent;
+    margin: 0;
+    background-color: transparent;
+    color: #fff;
+    padding: 15px 20px;
+    font-size: 18px;
     border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .row button img {
@@ -38,9 +45,10 @@
     height: 3rem;
     width: 14rem;
     font-size: 1.8rem;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.active {
-    background-color: red;
+.reset button:hover {
+    transform: scale(1.1);
+    cursor: pointer;
 }
-  

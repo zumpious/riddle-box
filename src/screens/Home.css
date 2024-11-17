@@ -1,30 +1,47 @@
 .homepage {
-    text-align: center;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    min-height: calc(100vh - 70px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
+  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
   
-  .welcome-section {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  .welcome-section h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-  }
-  
-  .intro-text {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #555;
-  }
+.welcome-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.intro-text {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.riddle-button {
+  background-color: #555;
+  color: #fff;
+  padding: 15px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.riddle-button:hover {
+  background-color: #333;
+  transform: scale(1.1);
+}
