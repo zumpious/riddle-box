@@ -1,54 +1,54 @@
 .content {
-    text-align: center;
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+	text-align: center;
+	background-color: #282c34;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	font-size: calc(10px + 2vmin);
+	color: white;
 }
 
 .timer {
-    padding-bottom: 2rem;
-    font-size: 2.5rem;
+	padding-bottom: 2rem;
+	font-size: 2.5rem;
 }
 
 .row {
-    display: flex;
-    justify-content: center;
+	display: flex;
+	justify-content: center;
 }
   
 .row button {
-    margin: 0;
-    background-color: transparent;
-    color: #fff;
-    padding: 15px 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+	margin: 0;
+	background-color: transparent;
+	color: #fff;
+	padding: 15px 20px;
+	font-size: 18px;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .row button img {
-    width: 3rem;
-    height: 3rem;
+	width: 3rem;
+	height: 3rem;
 }
 
 .reset {
-    padding-top: 2rem;
+	padding-top: 2rem;
 }
   
 .reset button{
-    height: 3rem;
-    width: 14rem;
-    font-size: 1.8rem;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+	height: 3rem;
+	width: 14rem;
+	font-size: 1.8rem;
+	transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .reset button:hover {
-    transform: scale(1.1);
-    cursor: pointer;
+	transform: scale(1.1);
+	cursor: pointer;
 }
