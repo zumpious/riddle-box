@@ -145,7 +145,7 @@ const NineLamps = () => {
             {renderButton(8)}
           </div>
           <div className="reset">
-            <button onClick={resetLampStates}>Zurücksetzen</button>
+            <button onClick={resetLampStates}>Reset</button>
           </div>
         </div>
       </div>
