@@ -2,7 +2,7 @@ import './Header.css';
 
 export function Header() {
   return (
-    <div className='homepage'>
+    <div className='game-header'>
       <div className='ruleset'>
         <h1> PUB QUIZ </h1>
         <p>
