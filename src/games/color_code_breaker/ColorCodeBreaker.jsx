@@ -6,35 +6,54 @@ const ColorCodeBreaker = () => {
   const [attempts, setAttempts] = useState([]);
   const [code, setCode] = useState([]);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [invalidFields, setInvalidFields] = useState([false, false, false, false]);
 
   useEffect(() => {
     setCode(generateCode());
   }, []);
 
   function generateCode() {
-    const colors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
+    const colors = ['red', 'blue', 'green', 'yellow', 'orange'];
     let generatedCode = [];
     for (let i = 0; i < 4; i++) {
       generatedCode.push(colors[Math.floor(Math.random() * colors.length)]);
     }
+    console.log(generatedCode);
     return generatedCode;
   }
 
   const handleSubmit = () => {
+    let isValid = true;
+    let newInvalidFields = [false, false, false, false];
+  
+    for (let i = 0; i < 4; i++) {
+      if (!guess[i]) {
+        newInvalidFields[i] = true;
+        isValid = false;
+      }
+    }
+  
+    setInvalidFields(newInvalidFields);
+  
+    if (!isValid) {
+      return;
+    }
+  
     let feedback = { correctPosition: 0, correctColor: 0 };
     let codeCopy = [...code];
     let guessCopy = [...guess];
-
-    // Check for correct color and position
+  
+    // First check for correct positions
     for (let i = 0; i < 4; i++) {
       if (guessCopy[i] === codeCopy[i]) {
         feedback.correctPosition++;
+        feedback.correctColor++; // Add this line to count correct positions as correct colors too
         codeCopy[i] = null;
         guessCopy[i] = null;
       }
     }
-
-    // Check for correct color in wrong position
+  
+    // Then check remaining colors in wrong positions
     for (let i = 0; i < 4; i++) {
       if (guessCopy[i] && codeCopy.includes(guessCopy[i])) {
         feedback.correctColor++;
@@ -42,11 +61,11 @@ const ColorCodeBreaker = () => {
         guessCopy[i] = null;
       }
     }
-
+  
     setAttempts([...attempts, { guess: [...guess], feedback }]);
     setGuess(['', '', '', '']);
     setAttemptCount(attemptCount + 1);
-
+  
     if (feedback.correctPosition === 4) {
       alert('Congratulations! You cracked the code!');
     }
@@ -56,9 +75,13 @@ const ColorCodeBreaker = () => {
     let newGuess = [...guess];
     newGuess[index] = color;
     setGuess(newGuess);
+
+    let newInvalidFields = [...invalidFields];
+    newInvalidFields[index] = false;
+    setInvalidFields(newInvalidFields);
   };
 
-  const colorOptions = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
+  const colorOptions = ['red', 'blue', 'green', 'yellow', 'orange'];
 
   return (
     <div className="color-code-breaker">
@@ -69,6 +92,7 @@ const ColorCodeBreaker = () => {
             <select
               value={color}
               onChange={(e) => handleColorChange(index, e.target.value)}
+              style={{ borderColor: invalidFields[index] ? 'red' : 'initial' }}
             >
               <option value="">Select Color</option>
               {colorOptions.map((optionColor) => (
