@@ -7,6 +7,7 @@ const ColorCodeBreaker = () => {
   const [code, setCode] = useState([]);
   const [attemptCount, setAttemptCount] = useState(0);
   const [invalidFields, setInvalidFields] = useState([false, false, false, false]);
+  const [isGameWon, setIsGameWon] = useState(false);
 
   useEffect(() => {
     setCode(generateCode());
@@ -18,7 +19,6 @@ const ColorCodeBreaker = () => {
     for (let i = 0; i < 4; i++) {
       generatedCode.push(colors[Math.floor(Math.random() * colors.length)]);
     }
-    console.log(generatedCode);
     return generatedCode;
   }
 
@@ -43,17 +43,15 @@ const ColorCodeBreaker = () => {
     let codeCopy = [...code];
     let guessCopy = [...guess];
   
-    // First check for correct positions
     for (let i = 0; i < 4; i++) {
       if (guessCopy[i] === codeCopy[i]) {
         feedback.correctPosition++;
-        feedback.correctColor++; // Add this line to count correct positions as correct colors too
+        feedback.correctColor++;
         codeCopy[i] = null;
         guessCopy[i] = null;
       }
     }
   
-    // Then check remaining colors in wrong positions
     for (let i = 0; i < 4; i++) {
       if (guessCopy[i] && codeCopy.includes(guessCopy[i])) {
         feedback.correctColor++;
@@ -67,6 +65,8 @@ const ColorCodeBreaker = () => {
     setAttemptCount(attemptCount + 1);
   
     if (feedback.correctPosition === 4) {
+      setIsGameWon(true);
+      setGuess([...code]); // Set guess to show solution
       alert('Congratulations! You cracked the code!');
     }
   };
@@ -93,6 +93,7 @@ const ColorCodeBreaker = () => {
               value={color}
               onChange={(e) => handleColorChange(index, e.target.value)}
               style={{ borderColor: invalidFields[index] ? 'red' : 'initial' }}
+              disabled={isGameWon}
             >
               <option value="">Select Color</option>
               {colorOptions.map((optionColor) => (
@@ -107,15 +108,33 @@ const ColorCodeBreaker = () => {
             ></div>
           </div>
         ))}
-        <button onClick={handleSubmit}>Submit Guess</button>
+        <button onClick={handleSubmit} disabled={isGameWon}>
+          Submit Guess
+        </button>
       </div>
       <div className="attempts">
         <h3>Attempts: {attemptCount}</h3>
         {attempts.map((attempt, idx) => (
           <div key={idx} className="attempt">
-            <span>{attempt.guess.join(', ')}</span>
-            <span>
-              Correct Position: {attempt.feedback.correctPosition}, Correct Color: {attempt.feedback.correctColor}
+            <div className="attempt-colors">
+              {attempt.guess.map((color, colorIdx) => (
+                <div
+                  key={colorIdx}
+                  className="attempt-color-box"
+                  style={{ 
+                    backgroundColor: color,
+                    width: '30px',
+                    height: '30px',
+                    display: 'inline-block',
+                    margin: '0 5px',
+                    border: '1px solid #ccc'
+                  }}
+                ></div>
+              ))}
+            </div>
+            <span className="attempt-feedback">
+              Correct Position: {attempt.feedback.correctPosition}, 
+              Correct Color: {attempt.feedback.correctColor}
             </span>
           </div>
         ))}

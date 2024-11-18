@@ -15,7 +15,19 @@
   }
   
   .attempt {
-    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+  }
+  
+  .attempt-colors {
+    display: flex;
+    gap: 5px;
+    margin-right: 15px;
+  }
+  
+  .attempt-feedback {
+    margin-left: 10px;
   }
 
   .color-select {
@@ -25,4 +37,19 @@
   
   .color-box {
     border: 1px solid #000;
+  }
+  
+  .solution {
+    margin: 20px 0;
+  }
+  
+  .solution-colors {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
