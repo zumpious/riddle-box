@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
+import Modal from 'react-modal';
 import './ColorCodeBreaker.css';
+Modal.setAppElement('#root'); // Assuming your app is mounted to a div with id="root"
 
 const ColorCodeBreaker = () => {
   const [guess, setGuess] = useState(['', '', '', '']);
@@ -8,6 +11,25 @@ const ColorCodeBreaker = () => {
   const [attemptCount, setAttemptCount] = useState(0);
   const [invalidFields, setInvalidFields] = useState([false, false, false, false]);
   const [isGameWon, setIsGameWon] = useState(false);
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    setCode(generateCode());
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setCode(generateCode());
@@ -19,6 +41,7 @@ const ColorCodeBreaker = () => {
     for (let i = 0; i < 4; i++) {
       generatedCode.push(colors[Math.floor(Math.random() * colors.length)]);
     }
+    console.log(generatedCode);
     return generatedCode;
   }
 
@@ -67,8 +90,12 @@ const ColorCodeBreaker = () => {
     if (feedback.correctPosition === 4) {
       setIsGameWon(true);
       setGuess([...code]); // Set guess to show solution
-      alert('Congratulations! You cracked the code!');
+      setShowVictoryModal(true);
     }
+  };
+
+  const closeVictoryModal = () => {
+    setShowVictoryModal(false);
   };
 
   const handleColorChange = (index, color) => {
@@ -85,6 +112,25 @@ const ColorCodeBreaker = () => {
 
   return (
     <div className="color-code-breaker">
+      {isGameWon && <Confetti
+        width={windowSize.width}
+        height={windowSize.height}
+        recycle={false}
+        numberOfPieces={500}
+      />}
+      <Modal
+        isOpen={showVictoryModal}
+        onRequestClose={closeVictoryModal}
+        className="victory-modal"
+        overlayClassName="victory-modal-overlay"
+      >
+        <div className="victory-content">
+          <h2>🎉 Congratulations! 🎉</h2>
+          <p>You cracked the code in {attemptCount} attempts!</p>
+          <button onClick={closeVictoryModal}>Close</button>
+        </div>
+      </Modal>
+
       <h2>Color Code Breaker</h2>
       <div className="guess-row">
         {guess.map((color, index) => (
