@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
+import Confetti from 'react-confetti';
+import Modal from 'react-modal';
 import elec_on from '../../img/nine_lamps/electricity_on.png';
 import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
@@ -17,14 +19,33 @@ const NineLamps = () => {
   const [problemCouldntBeSolved, setProblemCouldntBeSolved] = useState(false);
   const [counter, setCounter] = useState(TIMER_IN_SECONDS);
   const [cookies, setCookie] = useCookies(['puzzle-solved']);
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle saved state
   useEffect(() => {
     const savedState = cookies['puzzle-solved'];
     if (savedState) {
       const [status, state] = savedState.split('-');
-      const lampsArray = state.split(',').map(value => value === 'true');
       if (status === 'failure') {
+        const lampsArray = state.split(',').map(value => value === 'true');
         setProblemCouldntBeSolved(true);
         setCounter(0);
         setLampsState(lampsArray);
@@ -56,14 +77,21 @@ const NineLamps = () => {
     }
   }, [counter, startStopTimer, setCookie, lampsState]);
 
-  // Puzzle completion logic 
+  // Puzzle completion logic
   useEffect(() => {
     if (arrayEquals(lampsState, WINNING_LAMPS_STATE) && !cookies['puzzle-solved']) {
       setStartStopTimer(false);
       setProblemSolved(true);
+      setShowVictoryModal(true);
+      setShowConfetti(true);
       setCookie('puzzle-solved', `success-${counter}`, { path: '/', maxAge: 2000 });
     }
   }, [lampsState, cookies, counter, setCookie]);
+
+  const closeVictoryModal = () => {
+    setShowVictoryModal(false);
+    setShowConfetti(false);
+  };
 
   const changeLampState = (lamp) => {
     if (problemSolved || problemCouldntBeSolved) return;
@@ -114,14 +142,45 @@ const NineLamps = () => {
   };
 
   const renderButton = (index) => (
-    <button onClick={() => changeLampState(index + 1)} className={lampsState[index] ? 'active' : 'not-active'}>
-      <img src={lampsState[index] ? elec_on : elec_off} alt="Toggle electricity" />
+    <button
+      onClick={() => changeLampState(index + 1)}
+      className={lampsState[index] ? 'active' : 'not-active'}
+    >
+      <img
+        src={lampsState[index] ? elec_on : elec_off}
+        alt="Toggle electricity"
+      />
     </button>
   );
 
   return (
     <div>
-      <div className='header'>
+      {showConfetti && ( // Use showConfetti to control confetti display
+        <div className="confetti-container">
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={false}
+            numberOfPieces={500}
+          />
+        </div>
+      )}
+      <Modal
+        isOpen={showVictoryModal}
+        onRequestClose={closeVictoryModal}
+        className="victory-modal"
+        overlayClassName="victory-modal-overlay">
+        <div className="victory-content">
+          <h2>🎉 Congratulations! 🎉</h2>
+          <p>
+            You solved the puzzle in {' '}
+            {secondsToTime(TIMER_IN_SECONDS - counter)}!
+          </p>
+          <button onClick={closeVictoryModal}>Close</button>
+        </div>
+      </Modal>
+      
+      <div className="header">
         <Header />
       </div>
       <div className="content">
