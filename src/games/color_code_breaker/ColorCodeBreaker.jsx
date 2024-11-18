@@ -41,7 +41,6 @@ const ColorCodeBreaker = () => {
     for (let i = 0; i < 4; i++) {
       generatedCode.push(colors[Math.floor(Math.random() * colors.length)]);
     }
-    console.log(generatedCode);
     return generatedCode;
   }
 
