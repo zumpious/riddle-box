@@ -17,3 +17,12 @@
   .attempt {
     margin: 5px 0;
   }
+
+  .color-select {
+    display: inline-block;
+    margin-right: 10px;
+  }
+  
+  .color-box {
+    border: 1px solid #000;
+  }

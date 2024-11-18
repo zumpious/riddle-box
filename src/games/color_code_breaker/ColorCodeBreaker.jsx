@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ColorCodeBreaker.css';
 
 const ColorCodeBreaker = () => {
   const [guess, setGuess] = useState(['', '', '', '']);
   const [attempts, setAttempts] = useState([]);
-  const [code] = useState(generateCode());
+  const [code, setCode] = useState([]);
+  const [attemptCount, setAttemptCount] = useState(0);
+
+  useEffect(() => {
+    setCode(generateCode());
+  }, []);
 
   function generateCode() {
     const colors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
@@ -34,11 +39,13 @@ const ColorCodeBreaker = () => {
       if (guessCopy[i] && codeCopy.includes(guessCopy[i])) {
         feedback.correctColor++;
         codeCopy[codeCopy.indexOf(guessCopy[i])] = null;
+        guessCopy[i] = null;
       }
     }
 
     setAttempts([...attempts, { guess: [...guess], feedback }]);
     setGuess(['', '', '', '']);
+    setAttemptCount(attemptCount + 1);
 
     if (feedback.correctPosition === 4) {
       alert('Congratulations! You cracked the code!');
@@ -58,22 +65,28 @@ const ColorCodeBreaker = () => {
       <h2>Color Code Breaker</h2>
       <div className="guess-row">
         {guess.map((color, index) => (
-          <select
-            key={index}
-            value={color}
-            onChange={(e) => handleColorChange(index, e.target.value)}
-          >
-            <option value="">Select Color</option>
-            {colorOptions.map((optionColor) => (
-              <option key={optionColor} value={optionColor}>
-                {optionColor}
-              </option>
-            ))}
-          </select>
+          <div key={index} className="color-select">
+            <select
+              value={color}
+              onChange={(e) => handleColorChange(index, e.target.value)}
+            >
+              <option value="">Select Color</option>
+              {colorOptions.map((optionColor) => (
+                <option key={optionColor} value={optionColor}>
+                  {optionColor}
+                </option>
+              ))}
+            </select>
+            <div
+              className="color-box"
+              style={{ backgroundColor: color, width: '50px', height: '50px', marginTop: '10px' }}
+            ></div>
+          </div>
         ))}
         <button onClick={handleSubmit}>Submit Guess</button>
       </div>
       <div className="attempts">
+        <h3>Attempts: {attemptCount}</h3>
         {attempts.map((attempt, idx) => (
           <div key={idx} className="attempt">
             <span>{attempt.guess.join(', ')}</span>
