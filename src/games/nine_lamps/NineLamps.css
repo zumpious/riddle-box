@@ -57,11 +57,11 @@
 	z-index: 1000;
   }
   
-  .victory-modal {
+.victory-modal {
 	z-index: 1002;
-  }
+}
 
-  .confetti-container {
+.confetti-container {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -69,4 +69,4 @@
 	height: 100%;
 	pointer-events: none;
 	z-index: 1001;
-  }
+}

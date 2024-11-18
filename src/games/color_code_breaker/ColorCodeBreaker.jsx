@@ -41,6 +41,7 @@ const ColorCodeBreaker = () => {
     for (let i = 0; i < 4; i++) {
       generatedCode.push(colors[Math.floor(Math.random() * colors.length)]);
     }
+    console.log(generatedCode);
     return generatedCode;
   }
 
@@ -166,14 +167,7 @@ const ColorCodeBreaker = () => {
                 <div
                   key={colorIdx}
                   className="attempt-color-box"
-                  style={{ 
-                    backgroundColor: color,
-                    width: '30px',
-                    height: '30px',
-                    display: 'inline-block',
-                    margin: '0 5px',
-                    border: '1px solid #ccc'
-                  }}
+                  style={{backgroundColor: color}}
                 ></div>
               ))}
             </div>

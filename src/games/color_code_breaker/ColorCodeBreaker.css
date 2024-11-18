@@ -104,6 +104,14 @@ button:disabled {
   background-color: #2980b9;
 }
 
+.attempt-color-box {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  margin: 0 5px;
+  border: 1px solid #ccc;
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(20px);
