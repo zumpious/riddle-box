@@ -11,7 +11,10 @@ const Home = () => {
         <p className="intro-text">Starting with the original "9 Lamps" riddle—a logic puzzle that challenges players to turn on the right combination of lamps—this repository aims to grow into a box full of creative challenges.</p>
         <p className="intro-text">Each riddle is integrated into a single, React-based web application, making it easy to host and share. Perfect for pub quizzes, team-building activities, or just a fun evening with friends!</p>
         <Link to="/nine-lamps">
-          <button className="riddle-button">Nine Lamps</button>
+          <button className="riddle-button">9 Lamps</button>
+        </Link>
+        <Link to="/color-code-breaker">
+          <button className="riddle-button">Color Code Breaker</button>
         </Link>
       </div>
     </div>
