@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
 import Modal from 'react-modal';
 import './ColorCodeBreaker.css';
-Modal.setAppElement('#root'); // Assuming your app is mounted to a div with id="root"
+Modal.setAppElement('#root'); 
 
 const ColorCodeBreaker = () => {
   const [guess, setGuess] = useState(['', '', '', '']);
