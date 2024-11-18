@@ -4,7 +4,7 @@ export function Header() {
   return (
     <div className='game-header'>
       <div className='ruleset'>
-        <h1> PUB QUIZ </h1>
+        <h1> 9 Lamps </h1>
         <p>
           Below this text, you will see <span className="bold">9 unlit lamps</span>, represented by lightning bolts.
           Click on a lamp to turn it on, or click it again to turn it off.
