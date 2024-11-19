@@ -23,7 +23,7 @@ const ColorSelect = ({ color, index, invalid, onChange, disabled }) => (
       className={invalid ? 'invalid' : ''}
       disabled={disabled}
     >
-      <option value="">Pick a color</option>
+      <option value="">Pick a Color</option>
       {COLOR_OPTIONS.map((optionColor) => (
         <option key={optionColor} value={optionColor}>
           {optionColor.charAt(0).toUpperCase() + optionColor.slice(1)}
@@ -157,7 +157,7 @@ const ColorCodeBreaker = () => {
             width={windowSize.width}
             height={windowSize.height}
             recycle={false}
-            numberOfPieces={500}
+            numberOfPieces={666}
           />
         </div>
       )}
@@ -174,16 +174,18 @@ const ColorCodeBreaker = () => {
       <h2>Color Code Breaker</h2>
       
       <div className="guess-row">
-        {guess.map((color, index) => (
-          <ColorSelect
-            key={index}
-            color={color}
-            index={index}
-            invalid={invalidFields[index]}
-            onChange={handleColorChange}
-            disabled={isGameWon}
-          />
-        ))}
+        <div className="color-selects">
+          {guess.map((color, index) => (
+            <ColorSelect
+              key={index}
+              color={color}
+              index={index}
+              invalid={invalidFields[index]}
+              onChange={handleColorChange}
+              disabled={isGameWon}
+            />
+          ))}
+        </div>
         <button 
           className="submit-button"
           onClick={handleSubmit} 

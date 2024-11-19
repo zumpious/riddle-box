@@ -161,7 +161,7 @@ const NineLamps = () => {
             width={windowSize.width}
             height={windowSize.height}
             recycle={false}
-            numberOfPieces={500}
+            numberOfPieces={666}
           />
         </div>
       )}

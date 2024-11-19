@@ -1,7 +1,7 @@
 .color-code-breaker {
   text-align: center;
   background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px - 4rem); /* -4rem bc of the padding; -70px as its the navigation height*/
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,15 +25,22 @@
 
 .guess-row {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
   margin: 2rem 0;
-  flex-wrap: wrap;
 }
 
 .color-select {
   position: relative;
+}
+
+.color-selects {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .color-select select {
@@ -44,7 +51,7 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 120px;
+  width: 130px;
 }
 
 .color-select select:hover {
@@ -74,6 +81,7 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 200px;
 }
 
 .submit-button:hover:not(:disabled) {
@@ -86,6 +94,7 @@
   background: #f8f9fa;
   padding: 1.5rem;
   border-radius: 8px;
+  min-width: 44%;
 }
 
 .attempts h3 {
@@ -149,4 +158,11 @@
 
 .color-option:hover {
   transform: scale(1.1);
+}
+
+.color-selects {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
