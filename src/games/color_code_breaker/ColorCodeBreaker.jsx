@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
-import Modal from 'react-modal';
 import './ColorCodeBreaker.css';
 import VictoryModal from '../../components/VictoryModal';
 
@@ -24,16 +23,16 @@ const ColorSelect = ({ color, index, invalid, onChange, disabled }) => (
       className={invalid ? 'invalid' : ''}
       disabled={disabled}
     >
-      <option value="">Select Color</option>
+      <option value="">Pick a color</option>
       {COLOR_OPTIONS.map((optionColor) => (
         <option key={optionColor} value={optionColor}>
-          {optionColor}
+          {optionColor.charAt(0).toUpperCase() + optionColor.slice(1)}
         </option>
       ))}
     </select>
     <div
       className="color-box"
-      style={{ backgroundColor: color }}
+      style={{ backgroundColor: color || '#eee' }}
     ></div>
   </div>
 );
@@ -173,6 +172,7 @@ const ColorCodeBreaker = () => {
       />
 
       <h2>Color Code Breaker</h2>
+      
       <div className="guess-row">
         {guess.map((color, index) => (
           <ColorSelect
@@ -184,16 +184,22 @@ const ColorCodeBreaker = () => {
             disabled={isGameWon}
           />
         ))}
-        <button onClick={handleSubmit} disabled={isGameWon}>
+        <button 
+          className="submit-button"
+          onClick={handleSubmit} 
+          disabled={isGameWon}
+        >
           Submit Guess
         </button>
       </div>
+
       <div className="attempts">
-        <h3>Attempts: {attemptCount}</h3>
+        <h3>Previous Attempts: {attemptCount}</h3>
         {attempts.map((attempt, idx) => (
           <Attempt key={idx} attempt={attempt} />
         ))}
       </div>
+
     </div>
   );
 };

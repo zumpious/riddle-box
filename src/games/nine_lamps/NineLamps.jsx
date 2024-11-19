@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import Confetti from 'react-confetti';
-import Modal from 'react-modal';
 import elec_on from '../../img/nine_lamps/electricity_on.png';
 import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
