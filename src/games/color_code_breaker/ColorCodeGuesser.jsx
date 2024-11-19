@@ -200,7 +200,7 @@ const ColorCodeGuesser = () => {
         </div>
 
         <div className="attempts">
-          <h3>Previous Attempts: {attemptCount}</h3>
+          <h3>Attempts: {attemptCount}</h3>
           {attempts.map((attempt, idx) => (
             <Attempt key={idx} attempt={attempt} />
           ))}
