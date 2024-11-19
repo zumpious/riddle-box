@@ -107,43 +107,43 @@ const ColorCodeBreaker = () => {
   const handleSubmit = () => {
     const newInvalidFields = guess.map(color => !color);
     setInvalidFields(newInvalidFields);
-
+  
     if (newInvalidFields.some(field => field)) {
       return;
     }
-
+  
     let feedback = { correctPositions: 0, correctColors: 0 };
-    let codeCopy = [...code];
-    let guessCopy = [...guess];
-
-    // First, find correct positions
+  
     for (let i = 0; i < 4; i++) {
-      if (guessCopy[i] === codeCopy[i]) {
+      if (guess[i] === code[i]) {
         feedback.correctPositions++;
-        codeCopy[i] = null;
-        guessCopy[i] = null;
       }
     }
-
-    // Then, find correct colors in wrong positions
-    for (let i = 0; i < 4; i++) {
-      if (guessCopy[i]) {
-        const index = codeCopy.indexOf(guessCopy[i]);
-        if (index !== -1) {
-          feedback.correctColors++;
-          codeCopy[index] = null;
-          guessCopy[i] = null;
-        }
+  
+    const codeColorCounts = {};
+    const guessColorCounts = {};
+  
+    code.forEach(color => {
+      codeColorCounts[color] = (codeColorCounts[color] || 0) + 1;
+    });
+  
+    guess.forEach(color => {
+      guessColorCounts[color] = (guessColorCounts[color] || 0) + 1;
+    });
+  
+    for (let color in guessColorCounts) {
+      if (codeColorCounts[color]) {
+        feedback.correctColors += Math.min(codeColorCounts[color], guessColorCounts[color]);
       }
     }
-
+  
     setAttempts(prevAttempts => [...prevAttempts, { guess: [...guess], feedback }]);
     setGuess(['', '', '', '']);
     setAttemptCount(prevCount => prevCount + 1);
-
+  
     if (feedback.correctPositions === 4) {
       setIsGameWon(true);
-      setGuess([...code]); // Reveal color code
+      setGuess([...code]);
       setShowVictoryModal(true);
     }
   };
