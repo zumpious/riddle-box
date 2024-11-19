@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
-import './ColorCodeBreaker.css';
+import './ColorCodeGuesser.css';
 import VictoryModal from '../../components/VictoryModal';
 
 // Constants
@@ -54,7 +54,7 @@ const Attempt = ({ attempt }) => (
   </div>
 );
 
-const ColorCodeBreaker = () => {
+const ColorCodeGuesser = () => {
   const [guess, setGuess] = useState(['', '', '', '']);
   const [attempts, setAttempts] = useState([]);
   const [code, setCode] = useState([]);
@@ -171,7 +171,7 @@ const ColorCodeBreaker = () => {
         ]}
       />
 
-      <h2>Color Code Breaker</h2>
+      <h2>Color Code Guesser</h2>
       
       <div className="guess-row">
         <div className="color-selects">
@@ -206,4 +206,4 @@ const ColorCodeBreaker = () => {
   );
 };
 
-export default ColorCodeBreaker;
+export default ColorCodeGuesser;

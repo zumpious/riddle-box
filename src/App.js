@@ -3,7 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
 import NineLamps from './games/nine_lamps/NineLamps';
-import ColorCodeBreaker from './games/color_code_breaker/ColorCodeBreaker';
+import ColorCodeGuesser from './games/color_code_breaker/ColorCodeGuesser';
 import Menu from './components/Menu';
 import Home from './screens/Home';
 
@@ -17,7 +17,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/nine-lamps" element={<NineLamps />} />
-              <Route path="/color-code-breaker" element={<ColorCodeBreaker />} />
+              <Route path="/color-code-guesser" element={<ColorCodeGuesser />} />
             </Routes>
           </div>
         </div>

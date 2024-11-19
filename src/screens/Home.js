@@ -13,8 +13,8 @@ const Home = () => {
         <Link to="/nine-lamps">
           <button className="riddle-button">9 Lamps</button>
         </Link>
-        <Link to="/color-code-breaker">
-          <button className="riddle-button">Color Code Breaker</button>
+        <Link to="/color-code-guesser">
+          <button className="riddle-button">Color Code Guesser</button>
         </Link>
       </div>
     </div>

@@ -90,6 +90,9 @@
 }
 
 .attempts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-top: 2rem;
   background: #f8f9fa;
   padding: 1.5rem;

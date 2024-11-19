@@ -20,7 +20,7 @@ const Menu = () => {
       <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
         <li><Link to="/" onClick={toggleMenu}>Home</Link></li>
         <li><Link to="/nine-lamps" onClick={toggleMenu}>9 Lamps</Link></li>
-        <li><Link to="/color-code-breaker" onClick={toggleMenu}>Color Code Breaker</Link></li>
+        <li><Link to="/color-code-guesser" onClick={toggleMenu}>Color Code Guesser</Link></li>
       </ul>
     </nav>
   );
