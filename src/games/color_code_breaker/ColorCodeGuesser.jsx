@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
 import './ColorCodeGuesser.css';
 import VictoryModal from '../../components/VictoryModal';
+import { HeaderColorCodeGuesser } from './HeaderColorCodeGuesser';
 
-// Constants
 const COLOR_OPTIONS = ['red', 'blue', 'green', 'yellow', 'orange'];
 
 const generateCode = () => {
@@ -150,7 +150,7 @@ const ColorCodeGuesser = () => {
   };
 
   return (
-    <div className="color-code-breaker">
+    <div>
       {isGameWon && (
         <div className="confetti-container">
           <Confetti
@@ -171,37 +171,42 @@ const ColorCodeGuesser = () => {
         ]}
       />
 
-      <h2>Color Code Guesser</h2>
-      
-      <div className="guess-row">
-        <div className="color-selects">
-          {guess.map((color, index) => (
-            <ColorSelect
-              key={index}
-              color={color}
-              index={index}
-              invalid={invalidFields[index]}
-              onChange={handleColorChange}
-              disabled={isGameWon}
-            />
+      <div className='header'>
+        <HeaderColorCodeGuesser />
+      </div>
+
+      <div className='color-code-guesser'> 
+        <h1>Make Your Guess</h1>
+        <div className="guess-row">
+          <div className="color-selects">
+            {guess.map((color, index) => (
+              <ColorSelect
+                key={index}
+                color={color}
+                index={index}
+                invalid={invalidFields[index]}
+                onChange={handleColorChange}
+                disabled={isGameWon}
+              />
+            ))}
+          </div>
+          <button 
+            className="submit-button"
+            onClick={handleSubmit} 
+            disabled={isGameWon}
+          >
+            Submit Guess
+          </button>
+        </div>
+
+        <div className="attempts">
+          <h3>Previous Attempts: {attemptCount}</h3>
+          {attempts.map((attempt, idx) => (
+            <Attempt key={idx} attempt={attempt} />
           ))}
         </div>
-        <button 
-          className="submit-button"
-          onClick={handleSubmit} 
-          disabled={isGameWon}
-        >
-          Submit Guess
-        </button>
-      </div>
 
-      <div className="attempts">
-        <h3>Previous Attempts: {attemptCount}</h3>
-        {attempts.map((attempt, idx) => (
-          <Attempt key={idx} attempt={attempt} />
-        ))}
       </div>
-
     </div>
   );
 };
