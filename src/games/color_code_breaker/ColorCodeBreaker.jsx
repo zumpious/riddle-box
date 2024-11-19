@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
 import Modal from 'react-modal';
 import './ColorCodeBreaker.css';
-
-Modal.setAppElement('#root');
+import VictoryModal from '../../components/VictoryModal';
 
 // Constants
 const COLOR_OPTIONS = ['red', 'blue', 'green', 'yellow', 'orange'];
@@ -54,21 +53,6 @@ const Attempt = ({ attempt }) => (
       Correct Positions: {attempt.feedback.correctPositions}, Correct Colors: {attempt.feedback.correctColors}
     </span>
   </div>
-);
-
-const VictoryModal = ({ isOpen, onClose, attemptCount }) => (
-  <Modal
-    isOpen={isOpen}
-    onRequestClose={onClose}
-    className="victory-modal"
-    overlayClassName="victory-modal-overlay"
-  >
-    <div className="victory-content">
-      <h2>🎉 Congratulations! 🎉</h2>
-      <p>You cracked the code in {attemptCount} attempts!</p>
-      <button onClick={onClose}>Close</button>
-    </div>
-  </Modal>
 );
 
 const ColorCodeBreaker = () => {
@@ -169,18 +153,23 @@ const ColorCodeBreaker = () => {
   return (
     <div className="color-code-breaker">
       {isGameWon && (
-        <Confetti
-          width={windowSize.width}
-          height={windowSize.height}
-          recycle={false}
-          numberOfPieces={500}
-        />
+        <div className="confetti-container">
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={false}
+            numberOfPieces={500}
+          />
+        </div>
       )}
 
       <VictoryModal
         isOpen={showVictoryModal}
         onClose={closeVictoryModal}
-        attemptCount={attemptCount}
+        message="You cracked the code!"
+        stats={[
+          { label: "Attempts", value: attemptCount }
+        ]}
       />
 
       <h2>Color Code Breaker</h2>

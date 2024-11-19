@@ -7,6 +7,7 @@ import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
 import { arrayEquals, secondsToTime } from '../../utils/utils';
 import './NineLamps.css';
+import VictoryModal from '../../components/VictoryModal';
 
 const TIMER_IN_SECONDS = 300;
 const INITIAL_LAMPS_STATE = [false, false, false, false, false, false, false, false, false];
@@ -165,20 +166,14 @@ const NineLamps = () => {
           />
         </div>
       )}
-      <Modal
+      <VictoryModal
         isOpen={showVictoryModal}
-        onRequestClose={closeVictoryModal}
-        className="victory-modal"
-        overlayClassName="victory-modal-overlay">
-        <div className="victory-content">
-          <h2>🎉 Congratulations! 🎉</h2>
-          <p>
-            You solved the puzzle in {' '}
-            {secondsToTime(TIMER_IN_SECONDS - counter)}!
-          </p>
-          <button onClick={closeVictoryModal}>Close</button>
-        </div>
-      </Modal>
+        onClose={closeVictoryModal}
+        message="You solved the puzzle!"
+        stats={[
+          { label: "Time", value: secondsToTime(TIMER_IN_SECONDS - counter) }
+        ]}
+      />
       
       <div className="header">
         <Header />

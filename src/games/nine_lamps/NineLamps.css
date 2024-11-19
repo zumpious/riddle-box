@@ -53,14 +53,6 @@
 	cursor: pointer;
 }
 
-.victory-modal-overlay {
-	z-index: 1000;
-  }
-  
-.victory-modal {
-	z-index: 1002;
-}
-
 .confetti-container {
 	position: fixed;
 	top: 0;
