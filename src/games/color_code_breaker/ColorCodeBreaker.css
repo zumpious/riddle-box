@@ -61,3 +61,26 @@ button:disabled {
   margin: 0 5px;
   border: 1px solid #ccc;
 }
+
+.color-select select {
+  margin-bottom: 10px;
+}
+
+.color-select select.invalid {
+  border-color: red;
+}
+
+.color-box {
+  border: 1px solid #000;
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
+}
+
+.attempt-color-box {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  margin: 0 5px;
+  border: 1px solid #ccc;
+}

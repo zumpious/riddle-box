@@ -21,7 +21,7 @@ const ColorSelect = ({ color, index, invalid, onChange, disabled }) => (
     <select
       value={color}
       onChange={(e) => onChange(index, e.target.value)}
-      style={{ borderColor: invalid ? 'red' : 'initial' }}
+      className={invalid ? 'invalid' : ''}
       disabled={disabled}
     >
       <option value="">Select Color</option>
@@ -33,7 +33,7 @@ const ColorSelect = ({ color, index, invalid, onChange, disabled }) => (
     </select>
     <div
       className="color-box"
-      style={{ backgroundColor: color, width: '50px', height: '50px', marginTop: '10px' }}
+      style={{ backgroundColor: color }}
     ></div>
   </div>
 );
