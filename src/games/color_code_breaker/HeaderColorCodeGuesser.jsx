@@ -1,6 +1,14 @@
 import './HeaderColorCodeGuesser.css';
+import ScrollDownButton from '../../components/scroll_down_button/ScrollDownButton';
 
 export function HeaderColorCodeGuesser() {
+  const handleScrollDown = () => {
+    const gameSection = document.getElementById('game-section');
+    if (gameSection) {
+      gameSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className='game-header-color-code-guesser'>
       <div className='ruleset'>
@@ -20,6 +28,7 @@ export function HeaderColorCodeGuesser() {
         </p>
         <p><span className='bold'>Scroll down</span> to play the game.</p>
       </div>
+      <ScrollDownButton targetId='game-section' />
     </div>
   );
 }

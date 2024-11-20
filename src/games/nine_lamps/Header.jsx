@@ -1,4 +1,5 @@
 import './Header.css';
+import ScrollDownButton from '../../components/scroll_down_button/ScrollDownButton';
 
 export function Header() {
   return (
@@ -22,6 +23,7 @@ export function Header() {
           An <span className="bold">extra point</span> can be earned for presenting your solution to the group after the puzzle round ends.
         </p>
       </div>
+      <ScrollDownButton targetId='nine-lamps-game' />
     </div>
   );
 }

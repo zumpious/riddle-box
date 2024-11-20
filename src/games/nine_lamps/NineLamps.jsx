@@ -6,7 +6,7 @@ import elec_off from '../../img/nine_lamps/electricity_off.png';
 import Header from './Header';
 import { arrayEquals, secondsToTime } from '../../utils/utils';
 import './NineLamps.css';
-import VictoryModal from '../../components/VictoryModal';
+import VictoryModal from '../../components/victory_modal/VictoryModal';
 
 const TIMER_IN_SECONDS = 300;
 const INITIAL_LAMPS_STATE = [false, false, false, false, false, false, false, false, false];
@@ -177,7 +177,7 @@ const NineLamps = () => {
       <div className="header">
         <Header />
       </div>
-      <div className="content">
+      <div className="content" id="nine-lamps-game">
         <div>
           <div>
             <div className="timer">Timer: {secondsToTime(counter)}</div>
