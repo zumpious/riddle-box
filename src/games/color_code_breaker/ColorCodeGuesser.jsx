@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
 import './ColorCodeGuesser.css';
-import VictoryModal from '../../components/VictoryModal';
+import VictoryModal from '../../components/victory_modal/VictoryModal';
 import { HeaderColorCodeGuesser } from './HeaderColorCodeGuesser';
 
 const COLOR_OPTIONS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
@@ -197,7 +197,7 @@ const ColorCodeGuesser = () => {
         <HeaderColorCodeGuesser />
       </div>
 
-      <div className='color-code-guesser'> 
+      <div className='color-code-guesser' id='game-section'> 
         <h1>Make Your Guess</h1>
 
         <div className="difficulty-selection">
