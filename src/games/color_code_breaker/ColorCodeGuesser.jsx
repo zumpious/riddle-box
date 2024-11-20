@@ -4,16 +4,14 @@ import './ColorCodeGuesser.css';
 import VictoryModal from '../../components/VictoryModal';
 import { HeaderColorCodeGuesser } from './HeaderColorCodeGuesser';
 
-const COLOR_OPTIONS = ['red', 'blue', 'green', 'yellow', 'orange'];
+const COLOR_OPTIONS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
 
-const generateCode = () => {
-  let generatedCode = [];
-  for (let i = 0; i < 4; i++) {
-    generatedCode.push(COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)]);
-  }
-  console.log(generatedCode);
-  return generatedCode;
-}
+const DIFFICULTY_SETTINGS = {
+  easy: { codeLength: 3 },
+  medium: { codeLength: 4 },
+  hard: { codeLength: 5 },
+  extreme: { codeLength: 6 },
+};
 
 const ColorSelect = ({ color, index, invalid, onChange, disabled }) => (
   <div className="color-select">
@@ -55,17 +53,28 @@ const Attempt = ({ attempt }) => (
 );
 
 const ColorCodeGuesser = () => {
-  const [guess, setGuess] = useState(['', '', '', '']);
+  const [difficulty, setDifficulty] = useState('easy');
+  const [codeLength, setCodeLength] = useState(DIFFICULTY_SETTINGS[difficulty].codeLength);
+  const [guess, setGuess] = useState(Array(codeLength).fill(''));
   const [attempts, setAttempts] = useState([]);
   const [code, setCode] = useState([]);
   const [attemptCount, setAttemptCount] = useState(0);
-  const [invalidFields, setInvalidFields] = useState([false, false, false, false]);
+  const [invalidFields, setInvalidFields] = useState(Array(codeLength).fill(false));
   const [isGameWon, setIsGameWon] = useState(false);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const generateCode = () => {
+    const newCode = [];
+    for (let i = 0; i < codeLength; i++) {
+      newCode.push(COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)]);
+    }
+    console.log('Generated code:', newCode);
+    return newCode;
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,15 +86,26 @@ const ColorCodeGuesser = () => {
 
     window.addEventListener('resize', handleResize);
 
-    // Generate code on mount
-    const newCode = generateCode();
+    const newCodeLength = DIFFICULTY_SETTINGS[difficulty].codeLength;
+    setCodeLength(newCodeLength);
+    setGuess(Array(newCodeLength).fill(''));
+    setInvalidFields(Array(newCodeLength).fill(false));
+    setAttempts([]);
+    setAttemptCount(0);
+    setIsGameWon(false);
+    setShowVictoryModal(false);
+
+    const newCode = [];
+    for (let i = 0; i < newCodeLength; i++) {
+      newCode.push(COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)]);
+    }
     console.log('Generated code:', newCode);
     setCode(newCode);
 
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [difficulty]);
 
   const handleSubmit = () => {
     const newInvalidFields = guess.map(color => !color);
@@ -97,22 +117,20 @@ const ColorCodeGuesser = () => {
   
     let feedback = { correctPositions: 0, correctColors: 0 };
   
-    for (let i = 0; i < 4; i++) {
-      if (guess[i] === code[i]) {
-        feedback.correctPositions++;
-      }
-    }
-  
     const codeColorCounts = {};
     const guessColorCounts = {};
   
-    code.forEach(color => {
-      codeColorCounts[color] = (codeColorCounts[color] || 0) + 1;
-    });
+    for (let i = 0; i < codeLength; i++) {
+      const codeColor = code[i];
+      const guessColor = guess[i];
   
-    guess.forEach(color => {
-      guessColorCounts[color] = (guessColorCounts[color] || 0) + 1;
-    });
+      if (guessColor === codeColor) {
+        feedback.correctPositions++;
+      }
+  
+      codeColorCounts[codeColor] = (codeColorCounts[codeColor] || 0) + 1;
+      guessColorCounts[guessColor] = (guessColorCounts[guessColor] || 0) + 1;
+    }
   
     for (let color in guessColorCounts) {
       if (codeColorCounts[color]) {
@@ -121,10 +139,10 @@ const ColorCodeGuesser = () => {
     }
   
     setAttempts(prevAttempts => [...prevAttempts, { guess: [...guess], feedback }]);
-    setGuess(['', '', '', '']);
+    setGuess(Array(codeLength).fill(''));
     setAttemptCount(prevCount => prevCount + 1);
   
-    if (feedback.correctPositions === 4) {
+    if (feedback.correctPositions === codeLength) {
       setIsGameWon(true);
       setGuess([...code]);
       setShowVictoryModal(true);
@@ -147,6 +165,10 @@ const ColorCodeGuesser = () => {
       newInvalidFields[index] = false;
       return newInvalidFields;
     });
+  };
+
+  const handleDifficultyChange = (e) => {
+    setDifficulty(e.target.value);
   };
 
   return (
@@ -177,6 +199,22 @@ const ColorCodeGuesser = () => {
 
       <div className='color-code-guesser'> 
         <h1>Make Your Guess</h1>
+
+        <div className="difficulty-selection">
+          <label htmlFor="difficulty">Select Difficulty: </label>
+          <select
+            id="difficulty"
+            value={difficulty}
+            onChange={handleDifficultyChange}
+            disabled={isGameWon}
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="extreme">Extreme</option>
+          </select>
+        </div>
+
         <div className="guess-row">
           <div className="color-selects">
             {guess.map((color, index) => (
