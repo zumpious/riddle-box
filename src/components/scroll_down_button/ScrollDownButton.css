@@ -1,0 +1,30 @@
+.scroll-down-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  animation: bounce 3s infinite;
+}
+
+.scroll-down-button img {
+  width: 40px; /* Adjust size as needed */
+  height: 40px;
+}
+
+.scroll-down-button:hover img {
+  transform: scale(1.1);
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0); 
+  }
+  40% {
+    transform: translateY(-10px); 
+  }
+  60% {
+    transform: translateY(-5px); 
+  }
+}
