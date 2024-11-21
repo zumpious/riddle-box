@@ -237,7 +237,7 @@ const ColorCodeGuesser = () => {
           </button>
         </div>
 
-        <div className="attempts">
+        <div className={`attempts ${attempts.length > 0 ? 'has-attempts' : ''}`}>
           <h3>Attempts: {attemptCount}</h3>
           {attempts.map((attempt, idx) => (
             <Attempt key={idx} attempt={attempt} />

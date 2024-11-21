@@ -98,6 +98,10 @@
   min-width: 44%;
 }
 
+.attempts.has-attempts {
+  margin-bottom: 3rem;
+}
+
 .attempts h3 {
   color: #333;
   margin-bottom: 1rem;
