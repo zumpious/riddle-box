@@ -8,7 +8,7 @@ import { arrayEquals, secondsToTime } from '../../utils/utils';
 import './NineLamps.css';
 import VictoryModal from '../../components/victory_modal/VictoryModal';
 
-const TIMER_IN_SECONDS = 300;
+const TIMER_IN_SECONDS = 180;
 const INITIAL_LAMPS_STATE = [false, false, false, false, false, false, false, false, false];
 const WINNING_LAMPS_STATE = [true, true, true, true, true, true, true, true, true];
 
@@ -18,13 +18,14 @@ const NineLamps = () => {
   const [problemSolved, setProblemSolved] = useState(false);
   const [problemCouldntBeSolved, setProblemCouldntBeSolved] = useState(false);
   const [counter, setCounter] = useState(TIMER_IN_SECONDS);
-  const [cookies, setCookie] = useCookies(['puzzle-solved']);
+  const [cookies, setCookie, removeCookie] = useCookies(['puzzle-solved', 'start-time']);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
   const [showConfetti, setShowConfetti] = useState(false);
+  const [startTime, setStartTime] = useState(null);
 
   // Window resize handler
   useEffect(() => {
@@ -55,27 +56,35 @@ const NineLamps = () => {
         setCounter(parseInt(state, 10));
       }
     }
+    // Retrieve the start time from cookies if timer has started
+    const savedStartTime = cookies['start-time']; // Retrieve start time from cookie
+    if (savedStartTime) {
+      setStartTime(parseInt(savedStartTime, 10));
+      setStartStopTimer(true);
+    }
   }, [cookies]);
 
   // Handle timer
   useEffect(() => {
     let timer;
-    if (startStopTimer) {
+    if (startStopTimer && startTime) {
       timer = setInterval(() => {
-        setCounter((prevCounter) => prevCounter - 1);
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Calculate elapsed time
+        setCounter(TIMER_IN_SECONDS - elapsedTime);
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [startStopTimer]);
+  }, [startStopTimer, startTime]);
 
   // Handle time out
   useEffect(() => {
     if (counter <= 0 && startStopTimer) {
       setProblemCouldntBeSolved(true);
       setCookie('puzzle-solved', `failure-${lampsState}`, { path: '/', maxAge: 2000 });
+      removeCookie('start-time', { path: '/' }); // Remove the start-time cookie
       setStartStopTimer(false);
     }
-  }, [counter, startStopTimer, setCookie, lampsState]);
+  }, [counter, startStopTimer, setCookie, removeCookie, lampsState]);
 
   // Puzzle completion logic
   useEffect(() => {
@@ -85,8 +94,9 @@ const NineLamps = () => {
       setShowVictoryModal(true);
       setShowConfetti(true);
       setCookie('puzzle-solved', `success-${counter}`, { path: '/', maxAge: 2000 });
+      removeCookie('start-time', { path: '/' }); // Remove the start-time cookie
     }
-  }, [lampsState, cookies, counter, setCookie]);
+  }, [lampsState, cookies, counter, setCookie, removeCookie]);
 
   const closeVictoryModal = () => {
     setShowVictoryModal(false);
@@ -96,7 +106,14 @@ const NineLamps = () => {
   const changeLampState = (lamp) => {
     if (problemSolved || problemCouldntBeSolved) return;
 
-    if (!startStopTimer) setStartStopTimer(true);
+    //if (!startStopTimer) setStartStopTimer(true);
+
+    if (!startStopTimer) {
+      setStartStopTimer(true);
+      const currentTime = Date.now();
+      setStartTime(currentTime); // Set start time
+      setCookie('start-time', currentTime, { path: '/', maxAge: TIMER_IN_SECONDS }); // Store start time in cookie
+    }
 
     const newLampsState = [...lampsState];
     const toggle = (index) => newLampsState[index] = !newLampsState[index];
