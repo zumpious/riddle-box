@@ -12,6 +12,23 @@ Perfect for pub quizzes, team-building activities, or just a fun evening with fr
 
 Contributions and new riddle ideas are always welcome! 🚀
 
+## Docker Setup
+
+To set up the application using Docker, follow these steps:
+
+1. **Build the Docker image**:
+
+   ```bash
+   docker-compose build
+   ```
+
+2. **Run the docker container**:
+
+   ```bash
+   docker-compose up
+   ```
+
+After a successful build and run process, the application can be accessed at http://0.0.0.0:3000.
 
 ## Scripts
 
@@ -37,21 +54,3 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-## Docker Setup
-
-To set up the application using Docker, follow these steps:
-
-1. **Build the Docker image**:
-
-   ```bash
-   docker-compose build
-   ```
-
-2. **Run the docker container**:
-
-   ```bash
-   docker-compose up
-   ```
-
-After a successful build and run process, the application can be accessed at http://0.0.0.0:3000.
