@@ -425,17 +425,36 @@ function RaceArena({
           />
         </g>
 
-        {/* Center lap indicator based on leader progress */}
+        {/* Center lap indicator based on finish-line crossings */}
         {horses.length > 0 && (
           <g>
             <g transform={`translate(${cx}, ${cy})`}>
               {(() => {
-                const leader = Math.max(...horses.map((h) => h.progress))
-                const currLap = Math.min(
-                  laps,
-                  Math.floor(leader / lapLengthPx) + 1
+                const TAU = Math.PI * 2
+
+                // total sweep angle the horses will travel for this race
+                const totalSweep = maxAngle
+                // where the finish line ray is (0..TAU)
+                const lineAngle = ((totalSweep % TAU) + TAU) % TAU
+
+                // how far the *leader* has swept so far
+                const leaderProgress = Math.max(
+                  ...horses.map((h) => h.progress)
                 )
-                const label = `${currLap}/${laps}`
+                const leaderSweep =
+                  (leaderProgress / totalDistance) * totalSweep
+
+                // how many times the leader has passed the finish line so far
+                const passes = Math.floor((leaderSweep - lineAngle + TAU) / TAU)
+
+                // total number of laps (passes+1): 1 for <1 full rotation, 2 after one pass, etc.
+                const totalLaps = Math.floor(totalSweep / TAU) + 1
+
+                // current lap is passes+1, clamped to [1, totalLaps]
+                const currLap = Math.min(totalLaps, Math.max(1, passes + 1))
+
+                const label = `${currLap}/${totalLaps}`
+
                 return (
                   <>
                     <rect
