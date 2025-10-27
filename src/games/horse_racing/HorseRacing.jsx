@@ -26,6 +26,23 @@ const DefaultHorseSVG = ({ color = '#7c3aed' }) => (
   </g>
 )
 
+// ---------- Assets helper ----------
+function loadHorseImages() {
+  try {
+    const ctx = require.context(
+      '../../img/horse_racing',
+      false,
+      /\.(png|jpe?g|gif|webp)$/
+    )
+    return ctx.keys().map((key) => ({
+      label: key.replace('./', ''),
+      src: ctx(key)
+    }))
+  } catch (e) {
+    return []
+  }
+}
+
 // ---------- Main Component ----------
 const HorseRacing = () => {
   // Track & race settings
@@ -396,7 +413,11 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
 
           return (
             <g key={h.id} transform={`translate(${x}, ${y}) rotate(${rotDeg})`}>
-              <HorseSprite color={h.color} svgPath={h.svgPath} />
+              <HorseSprite
+                color={h.color}
+                svgPath={h.svgPath}
+                imgSrc={h.imgSrc}
+              />
               {/* Name + time tag */}
               <g transform="translate(0, -26)">
                 <rect
@@ -460,11 +481,20 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
   )
 }
 
-function HorseSprite({ color, svgPath }) {
+function HorseSprite({ color, svgPath, imgSrc }) {
   return (
     <g>
       <g transform="translate(-16, -12)">
-        {svgPath ? (
+        {imgSrc ? (
+          <image
+            href={imgSrc}
+            x={-16}
+            y={-12}
+            width={32}
+            height={24}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        ) : svgPath ? (
           <path d={svgPath} fill={color} stroke="black" strokeWidth={0.5} />
         ) : (
           <DefaultHorseSVG color={color} />
@@ -477,6 +507,7 @@ function HorseSprite({ color, svgPath }) {
 // ---------- Horse Editor ----------
 function HorseEditor({ horses, onChange }) {
   const [selectedId, setSelectedId] = useState(horses[0]?.id ?? '')
+  const images = useMemo(() => loadHorseImages(), [])
 
   useEffect(() => {
     if (!horses.find((h) => h.id === selectedId) && horses[0])
@@ -513,6 +544,23 @@ function HorseEditor({ horses, onChange }) {
           value={sel.color}
           onChange={(e) => update({ color: e.target.value })}
         />
+      </div>
+      <div className="editor-row">
+        <label className="editor-label">Sprite Image</label>
+        <select
+          value={sel.imgSrc || ''}
+          onChange={(e) => update({ imgSrc: e.target.value || undefined })}
+        >
+          <option value="">Default SVG</option>
+          {images.map((img) => (
+            <option key={img.src} value={img.src}>
+              {img.label}
+            </option>
+          ))}
+        </select>
+        {sel.imgSrc ? (
+          <img src={sel.imgSrc} alt="preview" className="img-preview" />
+        ) : null}
       </div>
       <label className="slider">
         Base Speed
@@ -580,6 +628,7 @@ function mkHorse(name, color) {
     id,
     name,
     color,
+    imgSrc: undefined,
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,
