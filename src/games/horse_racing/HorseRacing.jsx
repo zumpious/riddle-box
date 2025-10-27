@@ -224,6 +224,8 @@ const HorseRacing = () => {
             totalDistance={totalDistance}
             status={status}
             countdown={countdown}
+            lapLengthPx={lapLengthPx}
+            laps={laps}
           />
         </div>
 
@@ -357,7 +359,14 @@ const HorseRacing = () => {
 }
 
 // ---------- Arena (track + horses) ----------
-function RaceArena({ horses, totalDistance, status, countdown }) {
+function RaceArena({
+  horses,
+  totalDistance,
+  status,
+  countdown,
+  lapLengthPx,
+  laps
+}) {
   const size = 600 // svg viewport
   const cx = size / 2
   const cy = size / 2
@@ -366,8 +375,13 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
   const lanes = horses.length
 
   // Map progress (0..totalDistance) to angle around the track (0..2π * laps)
-  const maxAngle =
-    Math.PI * 2 * (totalDistance / (2 * Math.PI * ((outerR + innerR) / 2))) // approximate mapping
+  const midCirc = 2 * Math.PI * ((outerR + innerR) / 2)
+  const maxAngle = Math.PI * 2 * (totalDistance / midCirc) // approximate mapping
+
+  // Finish line angle equals the horses' final heading exactly
+  let finishAngleDeg = -90 + (maxAngle * 180) / Math.PI
+  // Normalize to [0, 360)
+  finishAngleDeg = ((finishAngleDeg % 360) + 360) % 360
 
   return (
     <div className="arena-wrap">
@@ -400,18 +414,55 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
           ))}
         </g>
 
-        {/* Start/finish line */}
-        <g transform={`translate(${cx}, ${cy})`}>
-          <g transform={`rotate(-90)`}>
-            <rect
-              x={-outerR}
-              y={-2}
-              width={outerR - innerR}
-              height={4}
-              fill="#0f172a"
-            />
-          </g>
+        {/* Start/finish line placed at end of lap length */}
+        <g transform={`translate(${cx}, ${cy}) rotate(${finishAngleDeg})`}>
+          <rect
+            x={innerR} // start at inner radius on the RIGHT
+            y={-3}
+            width={outerR - innerR}
+            height={6}
+            fill="#0f172a"
+          />
         </g>
+
+        {/* Center lap indicator based on leader progress */}
+        {horses.length > 0 && (
+          <g>
+            <g transform={`translate(${cx}, ${cy})`}>
+              {(() => {
+                const leader = Math.max(...horses.map((h) => h.progress))
+                const currLap = Math.min(
+                  laps,
+                  Math.floor(leader / lapLengthPx) + 1
+                )
+                const label = `${currLap}/${laps}`
+                return (
+                  <>
+                    <rect
+                      x={-22}
+                      y={-12}
+                      width={44}
+                      height={20}
+                      rx={10}
+                      fill="white"
+                      opacity={0.85}
+                    />
+                    <text
+                      x={0}
+                      y={2}
+                      textAnchor="middle"
+                      fontSize="12"
+                      fontWeight={700}
+                      fill="#0f172a"
+                    >
+                      {label}
+                    </text>
+                  </>
+                )
+              })()}
+            </g>
+          </g>
+        )}
 
         {/* Horses */}
         {horses.map((h, idx) => {
