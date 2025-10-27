@@ -188,170 +188,118 @@ const HorseRacing = () => {
   return (
     <div className="horse-racing">
       <div className="horse-racing-inner">
-        <div className="horse-header">
-          <div className="horse-title">
-            <h1>🏇 {raceName}</h1>
-            <p>Run a party race, track lap times, and crown a winner.</p>
-          </div>
-          <div className="horse-actions">
-            {(status === 'idle' || status === 'finished') && (
-              <button onClick={startCountdown} className="horse-btn primary">
-                Start Race
-              </button>
-            )}
-            {status === 'running' && (
-              <button onClick={stop} className="horse-btn">
-                Force Finish
-              </button>
-            )}
-            <button
-              onClick={() =>
-                setHorses((hs) => [
-                  ...hs,
-                  mkHorse(`New Horse ${hs.length + 1}`, randomColor())
-                ])
-              }
-              className="horse-btn"
-            >
-              + Add Horse
-            </button>
-          </div>
-        </div>
+        <div className="horse-layout">
+          <div className="horse-col-left">
+            <div ref={arenaRef} className="horse-arena">
+              <RaceArena
+                horses={horses}
+                totalDistance={totalDistance}
+                status={status}
+                countdown={countdown}
+                lapLengthPx={lapLengthPx}
+                laps={laps}
+              />
+            </div>
 
-        <div ref={arenaRef} className="horse-arena">
-          <RaceArena
-            horses={horses}
-            totalDistance={totalDistance}
-            status={status}
-            countdown={countdown}
-            lapLengthPx={lapLengthPx}
-            laps={laps}
-          />
-        </div>
+            <div className="horse-panels">
+              <div className="horse-list">
+                <h2>Horses</h2>
+                <div className="horse-list-grid">
+                  {horses.map((h) => (
+                    <div key={h.id} className="horse-row">
+                      <div
+                        className="horse-color"
+                        style={{ background: h.color }}
+                      />
+                      <div className="horse-row-main">
+                        <div className="horse-name">{h.name}</div>
+                        <div className="horse-meta">
+                          Base {Math.round(h.baseSpeed)} · Stamina {h.stamina}s
+                          · Var {(h.variance * 100).toFixed(0)}%
+                        </div>
+                      </div>
+                      <button
+                        className="horse-btn small"
+                        onClick={() =>
+                          setHorses((hs) => hs.filter((x) => x.id !== h.id))
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        <div className="horse-settings">
-          <div className="settings-card">
-            <h2>Race Settings</h2>
-            <div className="settings-grid">
-              <label>
-                <span>Name</span>
-                <input
-                  value={raceName}
-                  onChange={(e) => setRaceName(e.target.value)}
-                />
-              </label>
-              <label>
-                <span>Laps</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={laps}
-                  onChange={(e) => setLaps(Math.max(1, Number(e.target.value)))}
-                />
-              </label>
-              <label>
-                <span>Lap length (virtual px)</span>
-                <input
-                  type="number"
-                  min={200}
-                  step={100}
-                  value={lapLengthPx}
-                  onChange={(e) =>
-                    setLapLengthPx(Math.max(200, Number(e.target.value)))
-                  }
-                />
-              </label>
-              <div className="settings-stats">
-                <div>Elapsed: {msToClock(elapsed)}</div>
-                <div>Status: {status}</div>
+              <div className="horse-editor">
+                <h2>Edit Selected Horse</h2>
+                <HorseEditor horses={horses} onChange={setHorses} />
               </div>
             </div>
           </div>
 
-          <div className="settings-card">
-            <h2>Countdown</h2>
-            <div className="countdown">
-              <button
-                onClick={() => setCountdown((c) => Math.max(1, c - 1))}
-                className="horse-btn"
-              >
-                -
-              </button>
-              <div className="countdown-value">{countdown}s</div>
-              <button
-                onClick={() => setCountdown((c) => c + 1)}
-                className="horse-btn"
-              >
-                +
-              </button>
-            </div>
-            <p className="hint">
-              Starts automatically when you press "Start Race".
-            </p>
-          </div>
-        </div>
-
-        <div className="horse-panels">
-          <div className="horse-list">
-            <h2>Horses</h2>
-            <div className="horse-list-grid">
-              {horses.map((h) => (
-                <div key={h.id} className="horse-row">
-                  <div
-                    className="horse-color"
-                    style={{ background: h.color }}
-                  />
-                  <div className="horse-row-main">
-                    <div className="horse-name">{h.name}</div>
-                    <div className="horse-meta">
-                      Base {Math.round(h.baseSpeed)} · Stamina {h.stamina}s ·
-                      Var {(h.variance * 100).toFixed(0)}%
-                    </div>
-                  </div>
+          <div className="horse-col-right">
+            <div className="horse-header">
+              <div className="horse-title">
+                <h1>🏇 {raceName}</h1>
+                <p>Run a party race, track lap times, and crown a winner.</p>
+              </div>
+              <div className="horse-actions">
+                {(status === 'idle' || status === 'finished') && (
                   <button
-                    className="horse-btn small"
-                    onClick={() =>
-                      setHorses((hs) => hs.filter((x) => x.id !== h.id))
-                    }
+                    onClick={startCountdown}
+                    className="horse-btn primary"
                   >
-                    Remove
+                    Start Race
                   </button>
-                </div>
-              ))}
+                )}
+                {status === 'running' && (
+                  <button onClick={stop} className="horse-btn">
+                    Force Finish
+                  </button>
+                )}
+                <button
+                  className="horse-btn"
+                  onClick={() =>
+                    setHorses((hs) => [
+                      ...hs,
+                      mkHorse(`New Horse ${hs.length + 1}`, randomColor())
+                    ])
+                  }
+                >
+                  + Add Horse
+                </button>
+              </div>
+            </div>
+
+            <div className="horse-results">
+              <h2>Results</h2>
+              {status !== 'finished' && (
+                <p className="hint">
+                  Results appear when all horses finish (or you force finish).
+                </p>
+              )}
+              <ol className="results-list">
+                {sortedResults.map((h, idx) => (
+                  <li key={h.id} className="result-row">
+                    <div className="result-left">
+                      <span className="place">#{idx + 1}</span>
+                      <span className="dot" style={{ background: h.color }} />
+                      <span className="result-name">{h.name}</span>
+                    </div>
+                    <div className="result-time">
+                      {msToClock(h.finishedAtMs)}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="horse-tip">
+              Tip: replace the default horse shape with your own SVG path in the
+              editor.
             </div>
           </div>
-
-          <div className="horse-editor">
-            <h2>Edit Selected Horse</h2>
-            <HorseEditor horses={horses} onChange={setHorses} />
-          </div>
-        </div>
-
-        <div className="horse-results">
-          <h2>Results</h2>
-          {status !== 'finished' && (
-            <p className="hint">
-              Results appear when all horses finish (or you force finish).
-            </p>
-          )}
-          <ol className="results-list">
-            {sortedResults.map((h, idx) => (
-              <li key={h.id} className="result-row">
-                <div className="result-left">
-                  <span className="place">#{idx + 1}</span>
-                  <span className="dot" style={{ background: h.color }} />
-                  <span className="result-name">{h.name}</span>
-                </div>
-                <div className="result-time">{msToClock(h.finishedAtMs)}</div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="horse-tip">
-          Tip: replace the default horse shape with your own SVG path in the
-          editor.
         </div>
       </div>
     </div>
