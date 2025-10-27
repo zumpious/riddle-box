@@ -431,17 +431,8 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
               />
               {/* Name tag behind the horse, rotated with the sprite */}
               <g transform={`translate(-70, -10)`} pointerEvents="none">
-                <rect
-                  x={-40}
-                  y={-10}
-                  width={80}
-                  height={18}
-                  rx={9}
-                  fill="white"
-                  opacity={0.9}
-                />
                 <text
-                  x={0}
+                  x={20}
                   y={3}
                   textAnchor="middle"
                   fontSize="10"
@@ -483,7 +474,7 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
   )
 }
 
-function HorseSprite({ color, svgPath, imgSrc, spriteScale = 1 }) {
+function HorseSprite({ color, svgPath, imgSrc, spriteScale = 5 }) {
   return (
     <g>
       <g transform="translate(-16, -12)">
