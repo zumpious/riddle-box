@@ -51,12 +51,22 @@ const HorseRacing = () => {
   const [raceName, setRaceName] = useState('Birthday Grand Prix')
   const [countdown, setCountdown] = useState(3)
 
-  const [horses, setHorses] = useState(() => [
-    mkHorse('Comet', '#ef4444'),
-    mkHorse('Nimbus', '#3b82f6'),
-    mkHorse('Peach', '#f97316'),
-    mkHorse('Moss', '#10b981')
-  ])
+  const [horses, setHorses] = useState(() => {
+    let ketiImg
+    let reudoImg
+    try {
+      // optional: only if files exist
+      ketiImg = require('../../img/horse_racing/keti.png')
+    } catch (e) {}
+    try {
+      reudoImg = require('../../img/horse_racing/reudo.png')
+    } catch (e) {}
+
+    return [
+      { ...mkHorse('Keti', '#ec4899'), imgSrc: ketiImg }, // pink-ish
+      { ...mkHorse('Reudo', '#8b5e3c'), imgSrc: reudoImg } // brown-ish
+    ]
+  })
 
   const [status, setStatus] = useState('idle') // 'idle' | 'countdown' | 'running' | 'finished'
   const [startTime, setStartTime] = useState(null)
@@ -208,6 +218,15 @@ const HorseRacing = () => {
           </div>
         </div>
 
+        <div ref={arenaRef} className="horse-arena">
+          <RaceArena
+            horses={horses}
+            totalDistance={totalDistance}
+            status={status}
+            countdown={countdown}
+          />
+        </div>
+
         <div className="horse-settings">
           <div className="settings-card">
             <h2>Race Settings</h2>
@@ -269,15 +288,6 @@ const HorseRacing = () => {
               Starts automatically when you press "Start Race".
             </p>
           </div>
-        </div>
-
-        <div ref={arenaRef} className="horse-arena">
-          <RaceArena
-            horses={horses}
-            totalDistance={totalDistance}
-            status={status}
-            countdown={countdown}
-          />
         </div>
 
         <div className="horse-panels">
@@ -417,36 +427,28 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
                 color={h.color}
                 svgPath={h.svgPath}
                 imgSrc={h.imgSrc}
+                spriteScale={h.spriteScale}
               />
-              {/* Name + time tag */}
-              <g transform="translate(0, -26)">
+              {/* Name tag behind the horse, rotated with the sprite */}
+              <g transform={`translate(-70, -10)`} pointerEvents="none">
                 <rect
                   x={-40}
-                  y={-18}
+                  y={-10}
                   width={80}
-                  height={20}
-                  rx={10}
+                  height={18}
+                  rx={9}
                   fill="white"
                   opacity={0.9}
                 />
                 <text
                   x={0}
-                  y={-5}
+                  y={3}
                   textAnchor="middle"
                   fontSize="10"
                   fill="#0f172a"
                   fontWeight={600}
                 >
                   {h.name}
-                </text>
-                <text
-                  x={0}
-                  y={8}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#334155"
-                >
-                  {h.finishedAtMs != null ? msToClock(h.finishedAtMs) : ''}
                 </text>
               </g>
             </g>
@@ -481,19 +483,29 @@ function RaceArena({ horses, totalDistance, status, countdown }) {
   )
 }
 
-function HorseSprite({ color, svgPath, imgSrc }) {
+function HorseSprite({ color, svgPath, imgSrc, spriteScale = 1 }) {
   return (
     <g>
       <g transform="translate(-16, -12)">
         {imgSrc ? (
-          <image
-            href={imgSrc}
-            x={-16}
-            y={-12}
-            width={32}
-            height={24}
-            preserveAspectRatio="xMidYMid meet"
-          />
+          (() => {
+            const baseW = 32
+            const baseH = 24
+            const w = baseW * spriteScale
+            const h = baseH * spriteScale
+            const x = -16 - (w - baseW) / 2
+            const y = -12 - (h - baseH) / 2
+            return (
+              <image
+                href={imgSrc}
+                x={x}
+                y={y}
+                width={w}
+                height={h}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            )
+          })()
         ) : svgPath ? (
           <path d={svgPath} fill={color} stroke="black" strokeWidth={0.5} />
         ) : (
@@ -573,6 +585,17 @@ function HorseEditor({ horses, onChange }) {
         />
       </label>
       <label className="slider">
+        Sprite Size
+        <input
+          type="range"
+          min={0.6}
+          max={2}
+          step={0.1}
+          value={sel.spriteScale ?? 1}
+          onChange={(e) => update({ spriteScale: Number(e.target.value) })}
+        />
+      </label>
+      <label className="slider">
         Stamina (s)
         <input
           type="range"
@@ -629,6 +652,7 @@ function mkHorse(name, color) {
     name,
     color,
     imgSrc: undefined,
+    spriteScale: 1,
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,
