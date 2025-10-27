@@ -26,3 +26,8 @@ yarn-error.log*
 
 # macOS files 
 *.DS_Store
+
+# horse images
+src/img/horse_racing/*.png
+src/img/horse_racing/
+src/img/horse_racing/*.jpg
