@@ -1,0 +1,301 @@
+.horse-racing {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  padding: 1rem;
+}
+
+.horse-racing-inner {
+  margin: 0 auto;
+  max-width: 1080px;
+}
+
+.horse-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .horse-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.horse-title h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.horse-title p {
+  color: #475569;
+  margin: 0.25rem 0 0 0;
+}
+
+.horse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.horse-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.horse-btn.primary {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.horse-btn.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.horse-btn.align-right {
+  justify-self: end;
+}
+
+.horse-settings {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .horse-settings {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.settings-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.settings-card h2 {
+  margin: 0 0 0.75rem 0;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .settings-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.settings-grid input {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.settings-stats {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.countdown-value {
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.horse-arena {
+  position: relative;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+}
+
+.arena-wrap {
+  width: 100%;
+  overflow: auto;
+}
+
+.arena-svg {
+  width: 100%;
+  height: auto;
+}
+
+.horse-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .horse-panels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.horse-list,
+.horse-editor,
+.horse-results {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.horse-list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.horse-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.horse-color {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+
+.horse-row-main {
+  flex: 1;
+}
+
+.horse-name {
+  font-weight: 600;
+}
+
+.horse-meta {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.editor-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.editor-row select,
+.editor-row input {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.editor-row .color-input {
+  width: 64px;
+  height: 40px;
+}
+
+.slider input[type='range'] {
+  width: 100%;
+}
+
+.editor-advanced .editor-textarea {
+  width: 100%;
+  min-height: 96px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.results-list {
+  list-style: decimal;
+  margin: 0.25rem 0 0 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.place {
+  font-weight: 600;
+}
+
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.result-name {
+  font-weight: 500;
+}
+
+.result-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+.horse-tip {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
