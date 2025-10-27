@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './Menu.css';
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+import './Menu.css'
 
 const Menu = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+    setIsOpen(!isOpen)
+  }
 
   return (
     <nav className="navbar">
@@ -18,12 +18,29 @@ const Menu = () => {
         &#9776;
       </button>
       <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
-        <li><Link to="/" onClick={toggleMenu}>Home</Link></li>
-        <li><Link to="/nine-lamps" onClick={toggleMenu}>9 Lamps</Link></li>
-        <li><Link to="/color-code-guesser" onClick={toggleMenu}>Color Code Guesser</Link></li>
+        <li>
+          <Link to="/" onClick={toggleMenu}>
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link to="/nine-lamps" onClick={toggleMenu}>
+            9 Lamps
+          </Link>
+        </li>
+        <li>
+          <Link to="/color-code-guesser" onClick={toggleMenu}>
+            Color Code Guesser
+          </Link>
+        </li>
+        <li>
+          <Link to="/horse-racing" onClick={toggleMenu}>
+            Horse Racing
+          </Link>
+        </li>
       </ul>
     </nav>
-  );
-};
+  )
+}
 
-export default Menu;
+export default Menu
