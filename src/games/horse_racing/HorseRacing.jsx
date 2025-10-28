@@ -315,27 +315,142 @@ function RaceArena({
   lapLengthPx,
   laps
 }) {
-  const size = 600 // svg viewport
-  const cx = size / 2
-  const cy = size / 2
-  const outerR = 250
-  const innerR = 170
-  const lanes = horses.length
+  // Landscape SVG viewport
+  const W = 1100
+  const H = 700
+  const cx = W / 2
+  const cy = H / 2
 
-  // Map progress (0..totalDistance) to angle around the track (0..2π * laps)
-  const midCirc = 2 * Math.PI * ((outerR + innerR) / 2)
-  const maxAngle = Math.PI * 2 * (totalDistance / midCirc) // approximate mapping
+  // Track sizing (tweak to taste)
+  const trackThickness = 130 // total track width (outer - inner)
+  const lanes = Math.max(1, horses.length)
+  const laneGap = trackThickness / (lanes + 1)
 
-  // Finish line angle equals the horses' final heading exactly
-  let finishAngleDeg = -90 + (maxAngle * 180) / Math.PI
-  // Normalize to [0, 360)
-  finishAngleDeg = ((finishAngleDeg % 360) + 360) % 360
+  // Midline geometry for lanes: each lane i has its own arc radius
+  // We define an oval (aka "stadium") by: straightLen + corner radius R
+  // Choose midline base radius and straightLen so it fits nicely in the SVG.
+  const baseMidR = 180 // midline corner radius baseline
+  const straightLenBase = 520 // midline straight length baseline
+
+  // Inner/outer envelopes to draw the filled track
+  const innerR = baseMidR - trackThickness / 2
+  const outerR = baseMidR + trackThickness / 2
+  const straightLen = straightLenBase
+
+  // Perimeter of an oval with radius R and straight length L
+  const perimeter = (R, L) => 2 * L + 2 * Math.PI * R
+
+  // Midline perimeter (used for distance mapping per lap)
+  const midPerimeter = perimeter(baseMidR, straightLen)
+
+  // Finish line is placed where the *race* ends, i.e., at sFinish along the midline
+  const sFinish = ((totalDistance % midPerimeter) + midPerimeter) % midPerimeter
+
+  // === Helpers: stadium path + position/heading along the stadium =================
+
+  // Build an SVG path string for a "stadium" (rounded-rectangle) using arcs
+  // R: corner radius, L: straight length
+  function stadiumPath(R, L) {
+    // We start at the top-left tangent point, go clockwise
+    const xL = cx - L / 2
+    const xR = cx + L / 2
+    const yTop = cy - R
+    const yBot = cy + R
+
+    // Move to top-left
+    // Top straight: TL -> TR
+    // Right semicircle: TR -> BR
+    // Bottom straight: BR -> BL
+    // Left semicircle: BL -> TL
+    return [
+      `M ${xL} ${yTop}`,
+      `L ${xR} ${yTop}`,
+      `A ${R} ${R} 0 0 1 ${xR} ${yBot}`,
+      `L ${xL} ${yBot}`,
+      `A ${R} ${R} 0 0 1 ${xL} ${yTop}`,
+      'Z'
+    ].join(' ')
+  }
+
+  // Given distance s along the oval (clockwise) with midline radius R and straight length L,
+  // return { x, y, headingRad } at that param (heading is tangent direction)
+  function poseOnStadium(s, R, L) {
+    const P = perimeter(R, L)
+    let d = ((s % P) + P) % P
+
+    // Segment breakdown (clockwise, starting at middle of top straight going right):
+    // 0) Top straight: length L
+    // 1) Right semicircle (top -> bottom): length πR
+    // 2) Bottom straight (right -> left): length L
+    // 3) Left semicircle (bottom -> top): length πR
+    const seg0 = L
+    const seg1 = L + Math.PI * R
+    const seg2 = L + Math.PI * R + L
+    const seg3 = P
+
+    const xL = cx - L / 2
+    const xR = cx + L / 2
+    const yTop = cy - R
+    const yBot = cy + R
+
+    if (d <= seg0) {
+      // Top straight: left -> right
+      const u = d // [0..L]
+      const x = xL + u
+      const y = yTop
+      const headingRad = 0
+      return { x, y, headingRad }
+    }
+
+    if (d <= seg1) {
+      // Right semicircle, angle φ from -π/2 -> +π/2
+      const u = d - seg0 // [0..πR]
+      const phi = -Math.PI / 2 + u / R
+      const x = xR + R * Math.cos(phi)
+      const y = cy + R * Math.sin(phi)
+      const headingRad = phi + Math.PI / 2
+      return { x, y, headingRad }
+    }
+
+    if (d <= seg2) {
+      // Bottom straight: right -> left
+      const u = d - seg1 // [0..L]
+      const x = xR - u
+      const y = yBot
+      const headingRad = Math.PI
+      return { x, y, headingRad }
+    }
+
+    // Left semicircle, angle φ from +π/2 -> +3π/2
+    const u = d - seg2 // [0..πR]
+    const phi = Math.PI / 2 + u / R
+    const x = xL + R * Math.cos(phi)
+    const y = cy + R * Math.sin(phi)
+    const headingRad = phi + Math.PI / 2
+    return { x, y, headingRad }
+  }
+
+  // Convenience to draw dashed lane guide lines at each lane midline
+  const laneMidR = (i) => innerR + laneGap * (i + 1)
+  const laneMidPerimeter = (i) => perimeter(laneMidR(i), straightLen)
+
+  // Lap indicator: leader’s lap vs total laps in this race
+  const leaderProgress = Math.max(0, ...horses.map((h) => h.progress))
+  const totalLaps = Math.max(1, Math.ceil(totalDistance / midPerimeter))
+  const currLap = Math.min(
+    totalLaps,
+    Math.floor(leaderProgress / midPerimeter) + 1
+  )
+
+  // Finish line transform: perpendicular to heading at sFinish on midline
+  const finishPose = poseOnStadium(sFinish, baseMidR, straightLen)
+  const finishRotDeg = (finishPose.headingRad * 180) / Math.PI + 90 // perpendicular to tangent
 
   return (
     <div className="arena-wrap">
-      <svg viewBox={`0 0 ${size} ${size}`} className="arena-svg">
+      <svg viewBox={`0 0 ${W} ${H}`} className="arena-svg">
         <defs>
-          <radialGradient id="grass" cx="50%" cy="50%" r="50%">
+          <radialGradient id="grass" cx="50%" cy="50%" r="60%">
             <stop offset="0%" stopColor="#e2fbe2" />
             <stop offset="100%" stopColor="#c0f0c0" />
           </radialGradient>
@@ -345,102 +460,75 @@ function RaceArena({
           </linearGradient>
         </defs>
 
-        <rect x="0" y="0" width={size} height={size} fill="url(#grass)" />
-        <g>
-          <circle cx={cx} cy={cy} r={outerR} fill="url(#track)" />
-          <circle cx={cx} cy={cy} r={innerR} fill="url(#grass)" />
-          {Array.from({ length: lanes }).map((_, i) => (
-            <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={innerR + ((outerR - innerR) / (lanes + 1)) * (i + 1)}
-              fill="none"
-              stroke="#94a3b8"
-              strokeDasharray="6 8"
-            />
-          ))}
-        </g>
+        {/* Background */}
+        <rect x="0" y="0" width={W} height={H} fill="url(#grass)" />
 
-        {/* Start/finish line placed at end of lap length */}
-        <g transform={`translate(${cx}, ${cy}) rotate(${finishAngleDeg})`}>
+        {/* Track fill (outer minus inner) */}
+        <path d={stadiumPath(outerR, straightLen)} fill="url(#track)" />
+        <path d={stadiumPath(innerR, straightLen)} fill="url(#grass)" />
+
+        {/* Lane guides */}
+        {Array.from({ length: lanes }).map((_, i) => (
+          <path
+            key={i}
+            d={stadiumPath(laneMidR(i), straightLen)}
+            fill="none"
+            stroke="#94a3b8"
+            strokeDasharray="6 8"
+          />
+        ))}
+
+        {/* Start/Finish line, placed where the configured race would end */}
+        <g
+          transform={`translate(${finishPose.x}, ${finishPose.y}) rotate(${finishRotDeg})`}
+        >
           <rect
-            x={innerR} // start at inner radius on the RIGHT
+            x={-trackThickness / 2}
             y={-3}
-            width={outerR - innerR}
+            width={trackThickness}
             height={6}
             fill="#0f172a"
           />
         </g>
 
-        {/* Center lap indicator based on finish-line crossings */}
+        {/* Center lap indicator */}
         {horses.length > 0 && (
           <g>
-            <g transform={`translate(${cx}, ${cy})`}>
-              {(() => {
-                const TAU = Math.PI * 2
-
-                // total sweep angle the horses will travel for this race
-                const totalSweep = maxAngle
-                // where the finish line ray is (0..TAU)
-                const lineAngle = ((totalSweep % TAU) + TAU) % TAU
-
-                // how far the *leader* has swept so far
-                const leaderProgress = Math.max(
-                  ...horses.map((h) => h.progress)
-                )
-                const leaderSweep =
-                  (leaderProgress / totalDistance) * totalSweep
-
-                // how many times the leader has passed the finish line so far
-                const passes = Math.floor((leaderSweep - lineAngle + TAU) / TAU)
-
-                // total number of laps (passes+1): 1 for <1 full rotation, 2 after one pass, etc.
-                const totalLaps = Math.floor(totalSweep / TAU) + 1
-
-                // current lap is passes+1, clamped to [1, totalLaps]
-                const currLap = Math.min(totalLaps, Math.max(1, passes + 1))
-
-                const label = `${currLap}/${totalLaps}`
-
-                return (
-                  <>
-                    <rect
-                      x={-22}
-                      y={-12}
-                      width={44}
-                      height={20}
-                      rx={10}
-                      fill="white"
-                      opacity={0.85}
-                    />
-                    <text
-                      x={0}
-                      y={2}
-                      textAnchor="middle"
-                      fontSize="12"
-                      fontWeight={700}
-                      fill="#0f172a"
-                    >
-                      {label}
-                    </text>
-                  </>
-                )
-              })()}
-            </g>
+            <rect
+              x={cx - 22}
+              y={cy - 12}
+              width={44}
+              height={20}
+              rx={10}
+              fill="white"
+              opacity={0.85}
+            />
+            <text
+              x={cx}
+              y={cy + 2}
+              textAnchor="middle"
+              fontSize="12"
+              fontWeight={700}
+              fill="#0f172a"
+            >
+              {currLap}/{totalLaps}
+            </text>
           </g>
         )}
 
         {/* Horses */}
         {horses.map((h, idx) => {
-          const laneR = innerR + ((outerR - innerR) / (lanes + 1)) * (idx + 1)
-          const angle = (h.progress / totalDistance) * maxAngle - Math.PI / 2 // start at top
-          const x = cx + laneR * Math.cos(angle)
-          const y = cy + laneR * Math.sin(angle)
-          const rotDeg = (angle * 180) / Math.PI + 90 // face forward
+          const Rlane = laneMidR(idx)
+          // Distance along current lap for this horse:
+          const s = ((h.progress % midPerimeter) + midPerimeter) % midPerimeter
+          const p = poseOnStadium(s, Rlane, straightLen)
+          const rotDeg = (p.headingRad * 180) / Math.PI
 
           return (
-            <g key={h.id} transform={`translate(${x}, ${y}) rotate(${rotDeg})`}>
+            <g
+              key={h.id}
+              transform={`translate(${p.x}, ${p.y}) rotate(${rotDeg})`}
+            >
               <HorseSprite
                 color={h.color}
                 svgPath={h.svgPath}
@@ -467,19 +555,13 @@ function RaceArena({
         {/* Big countdown overlay */}
         {status === 'countdown' && (
           <g>
-            <rect
-              x={0}
-              y={0}
-              width={size}
-              height={size}
-              fill="rgba(0,0,0,0.2)"
-            />
+            <rect x={0} y={0} width={W} height={H} fill="rgba(0,0,0,0.2)" />
             <text
               x={cx}
               y={cy}
               textAnchor="middle"
               dominantBaseline="middle"
-              fontSize="120"
+              fontSize="200"
               fontWeight={800}
               fill="white"
             >
