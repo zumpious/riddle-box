@@ -519,9 +519,17 @@ function RaceArena({
         {/* Horses */}
         {horses.map((h, idx) => {
           const Rlane = laneMidR(idx)
-          // Distance along current lap for this horse:
-          const s = ((h.progress % midPerimeter) + midPerimeter) % midPerimeter
-          const p = poseOnStadium(s, Rlane, straightLen)
+          const PL = perimeter(Rlane, straightLen)
+          const laneScale = PL / midPerimeter
+          const sFinishLane = (sFinish / midPerimeter) * PL
+          const sStartLane =
+            (((sFinishLane - laneScale * sFinish) % PL) + PL) % PL
+          // Progress along midline (common virtual distance base)
+          const sMid =
+            ((h.progress % midPerimeter) + midPerimeter) % midPerimeter
+          // Map to lane and add start offset so all finish at the same line
+          const sLane = (sStartLane + laneScale * sMid) % PL
+          const p = poseOnStadium(sLane, Rlane, straightLen)
           const rotDeg = (p.headingRad * 180) / Math.PI
 
           return (
