@@ -2,7 +2,6 @@
   min-height: 100vh;
   width: 100%;
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-  padding: 1rem 2rem;
   overflow-x: hidden;
 }
 
@@ -14,7 +13,7 @@
 
 .horse-layout {
   display: grid;
-  grid-template-columns: max-content 360px;
+  grid-template-columns: 1fr;
   align-items: start;
   gap: 0.75rem;
 }
@@ -33,7 +32,7 @@
 }
 
 .horse-col-left {
-  width: max-content;
+  width: 100%;
 }
 
 .horse-settings,
@@ -178,7 +177,8 @@
   border-radius: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 1rem;
-  max-width: 1200px; /* shrink arena a bit */
+  width: 1200px; /* landscape arena width */
+  margin: 0 auto; /* center the arena block */
 }
 
 .arena-wrap {

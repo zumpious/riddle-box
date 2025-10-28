@@ -316,21 +316,21 @@ function RaceArena({
   laps
 }) {
   // Landscape SVG viewport
-  const W = 1100
+  const W = 1500
   const H = 700
   const cx = W / 2
   const cy = H / 2
 
   // Track sizing (tweak to taste)
-  const trackThickness = 130 // total track width (outer - inner)
+  const trackThickness = 160 // total track width (outer - inner)
   const lanes = Math.max(1, horses.length)
   const laneGap = trackThickness / (lanes + 1)
 
   // Midline geometry for lanes: each lane i has its own arc radius
   // We define an oval (aka "stadium") by: straightLen + corner radius R
   // Choose midline base radius and straightLen so it fits nicely in the SVG.
-  const baseMidR = 180 // midline corner radius baseline
-  const straightLenBase = 520 // midline straight length baseline
+  const baseMidR = 230 // midline corner radius baseline (bigger -> fills more vertically)
+  const straightLenBase = 800 // midline straight length baseline (bigger -> fills more horizontally)
 
   // Inner/outer envelopes to draw the filled track
   const innerR = baseMidR - trackThickness / 2
