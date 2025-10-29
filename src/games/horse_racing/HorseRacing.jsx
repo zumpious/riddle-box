@@ -410,23 +410,37 @@ function RaceArena({
   const cx = W / 2
   const cy = H / 2
 
-  // Track sizing (tweak to taste)
-  const trackThicknessVal = trackThickness || 160 // total track width (outer - inner)
-  const lanes = Math.max(1, horses.length)
-  const laneGap = trackThicknessVal / (lanes + 1)
+  // ============================================================================
+  // TRACK SIZING - Inward Expansion Strategy
+  // ============================================================================
+  // When adding horses/lanes:
+  // - Outer track edge stays FIXED at maximum viewport size
+  // - New lanes expand INWARD (filling the center empty space)
+  // - Lane spacing (laneGap) stays consistent
+  // - Each lane has different perimeter (inner = shorter, outer = longer)
+  // - Start offsets ensure all horses travel same distance & finish together
+  // ============================================================================
 
-  // Midline geometry (auto-fit the oval to reduce green margins)
-  // We build a stadium (rounded rectangle) that leaves a small edge margin
+  const lanes = Math.max(1, horses.length)
   const edgeMargin = 24
-  // Max outer radius allowed by SVG height minus margins
-  const maxOuterR = Math.max(60, H / 2 - edgeMargin)
-  // Pick base midline radius so that outer/inner fit inside the viewport with a small margin
-  const baseMidR = Math.max(60, maxOuterR - trackThicknessVal / 2)
-  // Compute inner/outer radii from midline and current thickness
-  const innerR = baseMidR - trackThicknessVal / 2
-  const outerR = baseMidR + trackThicknessVal / 2
-  // Compute straight length so total width ~ W - 2*edgeMargin
+
+  // Fix the outer radius at maximum (fills viewport)
+  const outerR = Math.max(60, H / 2 - edgeMargin)
+
+  // Compute straight length to fill width
   const straightLen = Math.max(120, W - 2 * edgeMargin - 2 * outerR)
+
+  // Calculate lane gap based on sprite size
+  const laneGap = Math.max(30, 10 * (spriteScaleDefault || 3))
+
+  // Total track thickness expands inward as we add lanes
+  const trackThicknessVal = laneGap * (lanes + 1)
+
+  // Inner radius shrinks as we add more lanes (expanding inward)
+  const innerR = Math.max(30, outerR - trackThicknessVal)
+
+  // Base midline radius for reference (used for finish line and lap calculations)
+  const baseMidR = (outerR + innerR) / 2
 
   // Perimeter of an oval with radius R and straight length L
   const perimeter = (R, L) => 2 * L + 2 * Math.PI * R
@@ -434,8 +448,12 @@ function RaceArena({
   // Midline perimeter (used for distance mapping per lap)
   const midPerimeter = perimeter(baseMidR, straightLen)
 
-  // Finish line is placed where the *race* ends, i.e., at sFinish along the midline
-  const sFinish = ((totalDistance % midPerimeter) + midPerimeter) % midPerimeter
+  // Finish line is placed where Lane 0 (outermost) finishes after totalDistance
+  // This ensures all horses cross the same black line when they finish
+  const lane0R = outerR - laneGap
+  const lane0Perimeter = perimeter(lane0R, straightLen)
+  const sFinish =
+    ((totalDistance % lane0Perimeter) + lane0Perimeter) % lane0Perimeter
 
   // === Helpers: stadium path + position/heading along the stadium =================
 
@@ -521,9 +539,37 @@ function RaceArena({
     return { x, y, headingRad }
   }
 
-  // Convenience to draw dashed lane guide lines at each lane midline
-  const laneMidR = (i) => innerR + laneGap * (i + 1)
+  // NEW: Each lane expands inward from the outer edge
+  // Lane 0 (outermost) is closest to outerR
+  // Lane i has midline at: outerR - (i + 1) * laneGap
+  const laneMidR = (i) => outerR - (i + 1) * laneGap
+
+  // Calculate perimeter for each lane (inner lanes are shorter)
   const laneMidPerimeter = (i) => perimeter(laneMidR(i), straightLen)
+
+  // For fair racing: calculate start offset so all horses finish at black line together
+  // Strategy:
+  // - The finish line is at angular position: sFinish / lane0Perimeter (fraction of Lane 0)
+  // - All horses must be at this same angular fraction when progress = totalDistance
+  // - For lane i: (totalDistance + offset) % lanePerim should equal sFinish_scaled
+  //   where sFinish_scaled = (sFinish / lane0Perimeter) * lanePerim
+  const getStartOffset = (laneIndex) => {
+    const lanePerim = laneMidPerimeter(laneIndex)
+    const lane0Perim = laneMidPerimeter(0)
+
+    // Angular position of finish line (as fraction of lap)
+    const finishAngleFraction = sFinish / lane0Perim
+
+    // Where this angular position falls on this lane
+    const sFinishOnThisLane = finishAngleFraction * lanePerim
+
+    // We want: (totalDistance + offset) % lanePerim = sFinishOnThisLane
+    // So: offset = sFinishOnThisLane - (totalDistance % lanePerim)
+    const rawOffset = sFinishOnThisLane - (totalDistance % lanePerim)
+
+    // Normalize offset to be positive
+    return ((rawOffset % lanePerim) + lanePerim) % lanePerim
+  }
 
   // Lap indicator: leader’s lap vs total laps in this race
   const leaderProgress = Math.max(0, ...horses.map((h) => h.progress))
@@ -533,8 +579,8 @@ function RaceArena({
     Math.floor(leaderProgress / midPerimeter) + 1
   )
 
-  // Finish line transform: perpendicular to heading at sFinish on midline
-  const finishPose = poseOnStadium(sFinish, baseMidR, straightLen)
+  // Finish line transform: perpendicular to heading at sFinish on Lane 0
+  const finishPose = poseOnStadium(sFinish, lane0R, straightLen)
   const finishRotDeg = (finishPose.headingRad * 180) / Math.PI + 90 // perpendicular to tangent
 
   return (
@@ -610,16 +656,14 @@ function RaceArena({
         {/* Horses */}
         {horses.map((h, idx) => {
           const Rlane = laneMidR(idx)
-          const PL = perimeter(Rlane, straightLen)
-          const laneScale = PL / midPerimeter
-          const sFinishLane = (sFinish / midPerimeter) * PL
-          const sStartLane =
-            (((sFinishLane - laneScale * sFinish) % PL) + PL) % PL
-          // Progress along midline (common virtual distance base)
-          const sMid =
-            ((h.progress % midPerimeter) + midPerimeter) % midPerimeter
-          // Map to lane and add start offset so all finish at the same line
-          const sLane = (sStartLane + laneScale * sMid) % PL
+          const PL = laneMidPerimeter(idx)
+
+          // Apply start offset for this lane so all horses finish together
+          const startOffset = getStartOffset(idx)
+          const adjustedProgress = h.progress + startOffset
+
+          // Map progress to position on this lane's oval
+          const sLane = ((adjustedProgress % PL) + PL) % PL
           const p = poseOnStadium(sLane, Rlane, straightLen)
           const rotDeg = (p.headingRad * 180) / Math.PI
 
