@@ -272,6 +272,43 @@ const HorseRacing = () => {
               </div>
             </div>
 
+            {/* Minimal race settings to control distance (laps and lap length) */}
+            <div className="horse-settings">
+              <div className="settings-card">
+                <h2>Race Settings</h2>
+                <div className="settings-grid">
+                  <label>
+                    <span>Laps</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={laps}
+                      onChange={(e) =>
+                        setLaps(Math.max(1, Number(e.target.value)))
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>Lap length (virtual units)</span>
+                    <input
+                      type="number"
+                      min={100}
+                      step={50}
+                      value={lapLengthPx}
+                      onChange={(e) =>
+                        setLapLengthPx(Math.max(100, Number(e.target.value)))
+                      }
+                    />
+                  </label>
+                  <div className="settings-stats">
+                    <div>Total distance: {lapLengthPx * laps}</div>
+                    <div>Status: {status}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="horse-results">
               <h2>Results</h2>
               {status !== 'finished' && (
