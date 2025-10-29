@@ -52,8 +52,8 @@ const HorseRacing = () => {
   const [countdown, setCountdown] = useState(3)
   // Display controls
   const [arenaHeight, setArenaHeight] = useState(800)
-  const [trackThicknessUi, setTrackThicknessUi] = useState(160)
-  const [spriteScaleDefault, setSpriteScaleDefault] = useState(3)
+  const [trackThicknessUi, setTrackThicknessUi] = useState(240)
+  const [spriteScaleDefault, setSpriteScaleDefault] = useState(5)
 
   const [horses, setHorses] = useState(() => {
     let ketiImg
@@ -332,8 +332,8 @@ const HorseRacing = () => {
                     <span>Track thickness</span>
                     <input
                       type="range"
-                      min={120}
-                      max={240}
+                      min={180}
+                      max={300}
                       step={5}
                       value={trackThicknessUi}
                       onChange={(e) =>
@@ -345,8 +345,8 @@ const HorseRacing = () => {
                     <span>Horse size</span>
                     <input
                       type="range"
-                      min={1.5}
-                      max={5}
+                      min={3}
+                      max={7}
                       step={0.1}
                       value={spriteScaleDefault}
                       onChange={(e) =>
@@ -829,10 +829,10 @@ function HorseEditor({ horses, onChange }) {
         Sprite Size
         <input
           type="range"
-          min={1.5}
-          max={5}
+          min={2}
+          max={6}
           step={0.1}
-          value={sel.spriteScale ?? 2}
+          value={sel.spriteScale ?? 4}
           onChange={(e) => update({ spriteScale: Number(e.target.value) })}
         />
       </label>
@@ -893,7 +893,7 @@ function mkHorse(name, color) {
     name,
     color,
     imgSrc: undefined,
-    spriteScale: 2,
+    spriteScale: 4,
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,
