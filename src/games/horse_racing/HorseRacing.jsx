@@ -448,12 +448,17 @@ function RaceArena({
   // Midline perimeter (used for distance mapping per lap)
   const midPerimeter = perimeter(baseMidR, straightLen)
 
-  // Finish line is placed where Lane 0 (outermost) finishes after totalDistance
-  // This ensures all horses cross the same black line when they finish
+  // Finish line is placed at track center, positioned where Lane 0 finishes
+  // Calculate sFinish based on Lane 0's perimeter (reference for all horses)
   const lane0R = outerR - laneGap
   const lane0Perimeter = perimeter(lane0R, straightLen)
-  const sFinish =
+  const sFinishLane0 =
     ((totalDistance % lane0Perimeter) + lane0Perimeter) % lane0Perimeter
+
+  // Convert this to the equivalent position at trackCenterR for drawing
+  const trackCenterR = (innerR + outerR) / 2
+  const trackCenterPerimeter = perimeter(trackCenterR, straightLen)
+  const sFinish = (sFinishLane0 / lane0Perimeter) * trackCenterPerimeter
 
   // === Helpers: stadium path + position/heading along the stadium =================
 
@@ -549,16 +554,16 @@ function RaceArena({
 
   // For fair racing: calculate start offset so all horses finish at black line together
   // Strategy:
-  // - The finish line is at angular position: sFinish / lane0Perimeter (fraction of Lane 0)
+  // - The finish line is at angular position: sFinishLane0 / lane0Perimeter (fraction of Lane 0)
   // - All horses must be at this same angular fraction when progress = totalDistance
   // - For lane i: (totalDistance + offset) % lanePerim should equal sFinish_scaled
-  //   where sFinish_scaled = (sFinish / lane0Perimeter) * lanePerim
+  //   where sFinish_scaled = (sFinishLane0 / lane0Perimeter) * lanePerim
   const getStartOffset = (laneIndex) => {
     const lanePerim = laneMidPerimeter(laneIndex)
     const lane0Perim = laneMidPerimeter(0)
 
     // Angular position of finish line (as fraction of lap)
-    const finishAngleFraction = sFinish / lane0Perim
+    const finishAngleFraction = sFinishLane0 / lane0Perim
 
     // Where this angular position falls on this lane
     const sFinishOnThisLane = finishAngleFraction * lanePerim
@@ -579,8 +584,8 @@ function RaceArena({
     Math.floor(leaderProgress / midPerimeter) + 1
   )
 
-  // Finish line transform: perpendicular to heading at sFinish on Lane 0
-  const finishPose = poseOnStadium(sFinish, lane0R, straightLen)
+  // Finish line transform: perpendicular to heading at sFinish at track center
+  const finishPose = poseOnStadium(sFinish, trackCenterR, straightLen)
   const finishRotDeg = (finishPose.headingRad * 180) / Math.PI + 90 // perpendicular to tangent
 
   return (
@@ -616,13 +621,15 @@ function RaceArena({
         ))}
 
         {/* Start/Finish line, placed where the configured race would end */}
+        {/* Line spans from innerR to outerR, perpendicular to track at finish position */}
+        {/* finishPose is at trackCenterR; center rectangle spans full track width */}
         <g
           transform={`translate(${finishPose.x}, ${finishPose.y}) rotate(${finishRotDeg})`}
         >
           <rect
-            x={-trackThicknessVal / 2}
+            x={-(outerR - innerR) / 2}
             y={-3}
-            width={trackThicknessVal}
+            width={outerR - innerR}
             height={6}
             fill="#0f172a"
           />
