@@ -28,6 +28,6 @@ yarn-error.log*
 *.DS_Store
 
 # horse images
-src/img/horse_racing/*.png
-src/img/horse_racing/
-src/img/horse_racing/*.jpg
+src/img/horse_racing/avatars/*.png
+src/img/horse_racing/avatars/
+src/img/horse_racing/avatars/*.jpg

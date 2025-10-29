@@ -30,7 +30,7 @@ const DefaultHorseSVG = ({ color = '#7c3aed' }) => (
 function loadHorseImages() {
   try {
     const ctx = require.context(
-      '../../img/horse_racing',
+      '../../img/avatars/horse_racing',
       false,
       /\.(png|jpe?g|gif|webp)$/
     )
@@ -60,10 +60,10 @@ const HorseRacing = () => {
     let reudoImg
     try {
       // optional: only if files exist
-      ketiImg = require('../../img/horse_racing/keti.png')
+      ketiImg = require('../../img/horse_racing/avatars/keti.png')
     } catch (e) {}
     try {
-      reudoImg = require('../../img/horse_racing/reudo.png')
+      reudoImg = require('../../img/horse_racing/avatars/reudo.png')
     } catch (e) {}
 
     return [
