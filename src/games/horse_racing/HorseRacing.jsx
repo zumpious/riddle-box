@@ -687,10 +687,10 @@ function HorseEditor({ horses, onChange }) {
         Sprite Size
         <input
           type="range"
-          min={0.6}
-          max={2}
+          min={1.5}
+          max={5}
           step={0.1}
-          value={sel.spriteScale ?? 1}
+          value={sel.spriteScale ?? 2}
           onChange={(e) => update({ spriteScale: Number(e.target.value) })}
         />
       </label>
@@ -751,7 +751,7 @@ function mkHorse(name, color) {
     name,
     color,
     imgSrc: undefined,
-    spriteScale: 1,
+    spriteScale: 2,
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,

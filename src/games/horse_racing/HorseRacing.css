@@ -16,6 +16,7 @@
   grid-template-columns: 1fr;
   align-items: start;
   gap: 0.75rem;
+  padding-top: 2rem;
 }
 
 @media (max-width: 1024px) {
@@ -31,14 +32,19 @@
   gap: 1rem;
 }
 
+.horse-col-right {
+  width: 1200px;
+  margin: 0 auto; /* center below arena */
+}
+
 .horse-col-left {
   width: 100%;
 }
 
 .horse-settings,
 .horse-panels {
-  max-width: 720px;
-  width: 100%;
+  width: 1200px;
+  margin: 0 auto; /* center below arena */
 }
 
 .horse-header {
