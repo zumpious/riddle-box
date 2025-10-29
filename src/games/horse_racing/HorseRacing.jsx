@@ -189,6 +189,62 @@ const HorseRacing = () => {
       .sort((a, b) => a.finishedAtMs - b.finishedAtMs)
   }, [horses])
 
+  // Keyboard shortcuts: Space -> start race, '+' -> add horse, '-' -> remove last
+  useEffect(() => {
+    const isTypingTarget = (el) => {
+      if (!el) return false
+      const tag = (el.tagName || '').toLowerCase()
+      return (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        el.isContentEditable
+      )
+    }
+
+    const onKeyDown = (e) => {
+      if (isTypingTarget(e.target)) return
+
+      // Space to start (only when idle or finished)
+      if (e.code === 'Space' || e.key === ' ') {
+        if (status === 'idle' || status === 'finished') {
+          e.preventDefault()
+          // Inline startCountdown logic to avoid unstable dependency
+          setHorses((curr) =>
+            curr.map((h) => ({
+              ...h,
+              progress: 0,
+              finishedAtMs: undefined,
+              rngSeed: Math.floor(Math.random() * 1e9)
+            }))
+          )
+
+          setStatus('countdown')
+        }
+        return
+      }
+
+      // '+' to add a horse (support numpad add)
+      if (e.key === '+' || e.code === 'NumpadAdd') {
+        e.preventDefault()
+        setHorses((hs) => [
+          ...hs,
+          mkHorse(`New Horse ${hs.length + 1}`, randomColor())
+        ])
+        return
+      }
+
+      // '-' to remove last horse (support numpad subtract)
+      if (e.key === '-' || e.code === 'NumpadSubtract') {
+        e.preventDefault()
+        setHorses((hs) => (hs.length > 0 ? hs.slice(0, -1) : hs))
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [status, setHorses, setStatus])
+
   return (
     <div className="horse-racing">
       <div className="horse-racing-inner">
