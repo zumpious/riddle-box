@@ -50,6 +50,10 @@ const HorseRacing = () => {
   const [laps, setLaps] = useState(1)
   const [raceName, setRaceName] = useState('Birthday Grand Prix')
   const [countdown, setCountdown] = useState(3)
+  // Display controls
+  const [arenaHeight, setArenaHeight] = useState(800)
+  const [trackThicknessUi, setTrackThicknessUi] = useState(160)
+  const [spriteScaleDefault, setSpriteScaleDefault] = useState(3)
 
   const [horses, setHorses] = useState(() => {
     let ketiImg
@@ -198,6 +202,9 @@ const HorseRacing = () => {
                 countdown={countdown}
                 lapLengthPx={lapLengthPx}
                 laps={laps}
+                arenaHeight={arenaHeight}
+                trackThickness={trackThicknessUi}
+                spriteScaleDefault={spriteScaleDefault}
               />
             </div>
 
@@ -307,6 +314,48 @@ const HorseRacing = () => {
                   </div>
                 </div>
               </div>
+              <div className="settings-card">
+                <h2>Display</h2>
+                <div className="settings-grid">
+                  <label>
+                    <span>Arena height</span>
+                    <input
+                      type="range"
+                      min={600}
+                      max={1000}
+                      step={20}
+                      value={arenaHeight}
+                      onChange={(e) => setArenaHeight(Number(e.target.value))}
+                    />
+                  </label>
+                  <label>
+                    <span>Track thickness</span>
+                    <input
+                      type="range"
+                      min={120}
+                      max={240}
+                      step={5}
+                      value={trackThicknessUi}
+                      onChange={(e) =>
+                        setTrackThicknessUi(Number(e.target.value))
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>Horse size</span>
+                    <input
+                      type="range"
+                      min={1.5}
+                      max={5}
+                      step={0.1}
+                      value={spriteScaleDefault}
+                      onChange={(e) =>
+                        setSpriteScaleDefault(Number(e.target.value))
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="horse-results">
@@ -350,29 +399,34 @@ function RaceArena({
   status,
   countdown,
   lapLengthPx,
-  laps
+  laps,
+  arenaHeight,
+  trackThickness,
+  spriteScaleDefault
 }) {
   // Landscape SVG viewport
   const W = 1500
-  const H = 700
+  const H = arenaHeight || 700
   const cx = W / 2
   const cy = H / 2
 
   // Track sizing (tweak to taste)
-  const trackThickness = 160 // total track width (outer - inner)
+  const trackThicknessVal = trackThickness || 160 // total track width (outer - inner)
   const lanes = Math.max(1, horses.length)
-  const laneGap = trackThickness / (lanes + 1)
+  const laneGap = trackThicknessVal / (lanes + 1)
 
-  // Midline geometry for lanes: each lane i has its own arc radius
-  // We define an oval (aka "stadium") by: straightLen + corner radius R
-  // Choose midline base radius and straightLen so it fits nicely in the SVG.
-  const baseMidR = 230 // midline corner radius baseline (bigger -> fills more vertically)
-  const straightLenBase = 800 // midline straight length baseline (bigger -> fills more horizontally)
-
-  // Inner/outer envelopes to draw the filled track
-  const innerR = baseMidR - trackThickness / 2
-  const outerR = baseMidR + trackThickness / 2
-  const straightLen = straightLenBase
+  // Midline geometry (auto-fit the oval to reduce green margins)
+  // We build a stadium (rounded rectangle) that leaves a small edge margin
+  const edgeMargin = 24
+  // Max outer radius allowed by SVG height minus margins
+  const maxOuterR = Math.max(60, H / 2 - edgeMargin)
+  // Pick base midline radius so that outer/inner fit inside the viewport with a small margin
+  const baseMidR = Math.max(60, maxOuterR - trackThicknessVal / 2)
+  // Compute inner/outer radii from midline and current thickness
+  const innerR = baseMidR - trackThicknessVal / 2
+  const outerR = baseMidR + trackThicknessVal / 2
+  // Compute straight length so total width ~ W - 2*edgeMargin
+  const straightLen = Math.max(120, W - 2 * edgeMargin - 2 * outerR)
 
   // Perimeter of an oval with radius R and straight length L
   const perimeter = (R, L) => 2 * L + 2 * Math.PI * R
@@ -520,9 +574,9 @@ function RaceArena({
           transform={`translate(${finishPose.x}, ${finishPose.y}) rotate(${finishRotDeg})`}
         >
           <rect
-            x={-trackThickness / 2}
+            x={-trackThicknessVal / 2}
             y={-3}
-            width={trackThickness}
+            width={trackThicknessVal}
             height={6}
             fill="#0f172a"
           />
@@ -578,7 +632,7 @@ function RaceArena({
                 color={h.color}
                 svgPath={h.svgPath}
                 imgSrc={h.imgSrc}
-                spriteScale={h.spriteScale}
+                spriteScale={h.spriteScale ?? spriteScaleDefault}
               />
               {/* Name tag behind the horse, rotated with the sprite */}
               <g transform={`translate(-70, -10)`} pointerEvents="none">
