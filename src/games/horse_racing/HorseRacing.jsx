@@ -1,6 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import './HorseRacing.css'
 
+// Try to load background image, fallback to undefined
+let grassBg
+try {
+  grassBg = require('../../img/horse_racing/background/grass.png')
+} catch (e) {
+  // No background image found, will use gradient
+}
+
 // ---------- Utilities ----------
 function lcg(seed) {
   // simple deterministic RNG (0..1)
@@ -30,7 +38,7 @@ const DefaultHorseSVG = ({ color = '#7c3aed' }) => (
 function loadHorseImages() {
   try {
     const ctx = require.context(
-      '../../img/avatars/horse_racing',
+      '../../img/horse_racing/avatars',
       false,
       /\.(png|jpe?g|gif|webp)$/
     )
@@ -648,22 +656,76 @@ function RaceArena({
     <div className="arena-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} className="arena-svg">
         <defs>
-          <radialGradient id="grass" cx="50%" cy="50%" r="60%">
+          {/* Grass background gradient (fallback) */}
+          <radialGradient id="grassGradient" cx="50%" cy="50%" r="60%">
             <stop offset="0%" stopColor="#e2fbe2" />
             <stop offset="100%" stopColor="#c0f0c0" />
           </radialGradient>
+          {/* Track gradient */}
           <linearGradient id="track" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e5e7eb" />
-            <stop offset="100%" stopColor="#cbd5e1" />
+            <stop offset="0%" stopColor="#a8846e" />
+            <stop offset="100%" stopColor="#9B7653" />
           </linearGradient>
         </defs>
 
-        {/* Background */}
-        <rect x="0" y="0" width={W} height={H} fill="url(#grass)" />
+        {/* Background - use image if available, otherwise gradient */}
+        {grassBg ? (
+          <>
+            <image
+              href={grassBg}
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              preserveAspectRatio="xMidYMid slice"
+            />
+            {/* Semi-transparent overlay for softer look */}
+            <rect
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              fill="white"
+              opacity="0.15"
+            />
+          </>
+        ) : (
+          <rect x="0" y="0" width={W} height={H} fill="url(#grassGradient)" />
+        )}
 
         {/* Track fill (outer minus inner) */}
         <path d={stadiumPath(outerR, straightLen)} fill="url(#track)" />
-        <path d={stadiumPath(innerR, straightLen)} fill="url(#grass)" />
+        {grassBg ? (
+          <>
+            <image
+              href={grassBg}
+              x="0"
+              y="0"
+              width={W}
+              height={H}
+              preserveAspectRatio="xMidYMid slice"
+              clipPath="url(#innerClip)"
+            />
+            {/* Semi-transparent overlay for inner area */}
+            <path
+              d={stadiumPath(innerR, straightLen)}
+              fill="brown"
+              opacity="0.15"
+            />
+          </>
+        ) : (
+          <path
+            d={stadiumPath(innerR, straightLen)}
+            fill="url(#grassGradient)"
+          />
+        )}
+
+        {/* Clip path for inner grass area */}
+        <defs>
+          <clipPath id="innerClip">
+            <path d={stadiumPath(innerR, straightLen)} />
+          </clipPath>
+        </defs>
 
         {/* Lane guides */}
         {Array.from({ length: lanes }).map((_, i) => (
@@ -671,7 +733,7 @@ function RaceArena({
             key={i}
             d={stadiumPath(laneMidR(i), straightLen)}
             fill="none"
-            stroke="#94a3b8"
+            stroke="#f5f5f5"
             strokeDasharray="6 8"
           />
         ))}
