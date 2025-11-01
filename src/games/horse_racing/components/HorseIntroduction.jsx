@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './HorseIntroduction.css'
+import introStatsBg from '../../../img/horse_racing/background/intro_stats.png'
+import { INTRO_DURATION_PER_HORSE } from '../constants'
 
 /**
  * HorseIntroduction Component
@@ -25,14 +27,21 @@ function HorseIntroduction({ horses, currentIndex, allComplete }) {
     setDirection(randomDir)
     setAnimationPhase('entering')
 
+    // Calculate phase timings based on INTRO_DURATION_PER_HORSE
+    // Entry: 20% of total time
+    // Center: 60% of total time (most important - showing stats)
+    // Exit: 20% of total time
+    const enterDuration = INTRO_DURATION_PER_HORSE * 0.2
+    const exitStartTime = INTRO_DURATION_PER_HORSE * 0.8
+
     // Phase timing
     const enterTimer = setTimeout(() => {
       setAnimationPhase('center')
-    }, 600) // Entry animation duration
+    }, enterDuration)
 
     const exitTimer = setTimeout(() => {
       setAnimationPhase('exiting')
-    }, 2400) // Hold in center for ~1.8s (3s - 0.6s - 0.6s)
+    }, exitStartTime)
 
     return () => {
       clearTimeout(enterTimer)
@@ -57,7 +66,8 @@ function HorseIntroduction({ horses, currentIndex, allComplete }) {
       <div
         className={`horse-intro-card ${animationPhase} from-${direction}`}
         style={{
-          '--horse-color': horse.color
+          '--horse-color': horse.color,
+          backgroundImage: `url(${introStatsBg})`
         }}
       >
         {/* Horse Image */}

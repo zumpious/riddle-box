@@ -55,7 +55,7 @@ export const RACE_STATUS = {
 }
 
 // Introduction settings
-export const INTRO_DURATION_PER_HORSE = 3000 // milliseconds per horse intro
+export const INTRO_DURATION_PER_HORSE = 5000 // milliseconds per horse intro
 
 // Input ranges
 export const RANGES = {
