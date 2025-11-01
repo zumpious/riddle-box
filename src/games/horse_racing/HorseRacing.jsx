@@ -9,6 +9,80 @@ try {
   // No background image found, will use gradient
 }
 
+// ---------- Config Storage ----------
+const STORAGE_KEY = 'horse-racing-config'
+
+function saveConfig(horses) {
+  const config = horses.map((h) => ({
+    id: h.id,
+    name: h.name,
+    color: h.color,
+    imgSrc: h.imgSrc,
+    imgFileName: h.imgFileName, // Store the filename for matching
+    spriteScale: h.spriteScale,
+    baseSpeed: h.baseSpeed,
+    stamina: h.stamina,
+    variance: h.variance,
+    rngSeed: h.rngSeed,
+    // Stats
+    wins: h.wins || 0,
+    races: h.races || 0,
+    totalTime: h.totalTime || 0
+  }))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+}
+
+function loadConfig() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (!data) return null
+    return JSON.parse(data)
+  } catch (e) {
+    console.error('Failed to load config:', e)
+    return null
+  }
+}
+
+function exportConfig(horses) {
+  const config = horses.map((h) => ({
+    id: h.id,
+    name: h.name,
+    color: h.color,
+    imgFileName: h.imgFileName,
+    spriteScale: h.spriteScale,
+    baseSpeed: h.baseSpeed,
+    stamina: h.stamina,
+    variance: h.variance,
+    rngSeed: h.rngSeed,
+    wins: h.wins || 0,
+    races: h.races || 0,
+    totalTime: h.totalTime || 0
+  }))
+  const blob = new Blob([JSON.stringify(config, null, 2)], {
+    type: 'application/json'
+  })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `horse-racing-config-${Date.now()}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function importConfig(file, callback) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      const config = JSON.parse(e.target.result)
+      callback(config)
+    } catch (err) {
+      console.error('Failed to parse config:', err)
+      alert('Invalid configuration file')
+    }
+  }
+  reader.readAsText(file)
+}
+
 // ---------- Utilities ----------
 function lcg(seed) {
   // simple deterministic RNG (0..1)
@@ -63,11 +137,36 @@ const HorseRacing = () => {
   const [trackThicknessUi, setTrackThicknessUi] = useState(240)
   const [spriteScaleDefault, setSpriteScaleDefault] = useState(5)
 
+  const images = useMemo(() => loadHorseImages(), [])
+
   const [horses, setHorses] = useState(() => {
+    // Try to load saved config first
+    const savedConfig = loadConfig()
+    const availableImages = loadHorseImages()
+
+    if (savedConfig && savedConfig.length > 0) {
+      return savedConfig.map((cfg) => {
+        // Try to match image by filename
+        let imgSrc = cfg.imgSrc
+        if (cfg.imgFileName) {
+          const match = availableImages.find(
+            (img) => img.label === cfg.imgFileName
+          )
+          if (match) imgSrc = match.src
+        }
+        return {
+          ...cfg,
+          imgSrc,
+          progress: 0,
+          finishedAtMs: null
+        }
+      })
+    }
+
+    // Otherwise use default horses
     let ketiImg
     let reudoImg
     try {
-      // optional: only if files exist
       ketiImg = require('../../img/horse_racing/avatars/keti.png')
     } catch (e) {}
     try {
@@ -75,8 +174,16 @@ const HorseRacing = () => {
     } catch (e) {}
 
     return [
-      { ...mkHorse('Keti', '#ec4899'), imgSrc: ketiImg }, // pink-ish
-      { ...mkHorse('Reudo', '#8b5e3c'), imgSrc: reudoImg } // brown-ish
+      {
+        ...mkHorse('Keti', '#ec4899'),
+        imgSrc: ketiImg,
+        imgFileName: 'keti.png'
+      },
+      {
+        ...mkHorse('Reudo', '#8b5e3c'),
+        imgSrc: reudoImg,
+        imgFileName: 'reudo.png'
+      }
     ]
   })
 
@@ -188,8 +295,31 @@ const HorseRacing = () => {
       horses.length > 0
     ) {
       setStatus('finished')
+
+      // Update win statistics
+      const winner = horses.reduce((best, h) => {
+        if (!h.finishedAtMs) return best
+        if (!best || h.finishedAtMs < best.finishedAtMs) return h
+        return best
+      }, null)
+
+      if (winner) {
+        setHorses((curr) =>
+          curr.map((h) => ({
+            ...h,
+            races: (h.races || 0) + 1,
+            wins: h.id === winner.id ? (h.wins || 0) + 1 : h.wins || 0,
+            totalTime: (h.totalTime || 0) + (h.finishedAtMs || 0)
+          }))
+        )
+      }
     }
-  }, [finishedCount, status, horses.length])
+  }, [finishedCount, status, horses.length, horses])
+
+  // Auto-save horses to localStorage whenever they change
+  useEffect(() => {
+    saveConfig(horses)
+  }, [horses])
 
   const sortedResults = useMemo(() => {
     return [...horses]
@@ -339,6 +469,95 @@ const HorseRacing = () => {
                   }
                 >
                   + Add Horse
+                </button>
+              </div>
+
+              {/* Config Management */}
+              <div
+                className="horse-actions"
+                style={{
+                  marginTop: '1rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid #e5e7eb'
+                }}
+              >
+                <button
+                  className="horse-btn"
+                  onClick={() => {
+                    exportConfig(horses)
+                  }}
+                  title="Export configuration to JSON file"
+                >
+                  💾 Export Config
+                </button>
+                <label
+                  className="horse-btn"
+                  style={{ cursor: 'pointer', margin: 0 }}
+                >
+                  📁 Import Config
+                  <input
+                    type="file"
+                    accept=".json"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        importConfig(file, (config) => {
+                          const availableImages = loadHorseImages()
+                          const loadedHorses = config.map((cfg) => {
+                            let imgSrc = cfg.imgSrc
+                            if (cfg.imgFileName) {
+                              const match = availableImages.find(
+                                (img) => img.label === cfg.imgFileName
+                              )
+                              if (match) imgSrc = match.src
+                            }
+                            return {
+                              ...cfg,
+                              imgSrc,
+                              progress: 0,
+                              finishedAtMs: null
+                            }
+                          })
+                          setHorses(loadedHorses)
+                        })
+                      }
+                      e.target.value = '' // Reset input
+                    }}
+                  />
+                </label>
+                <button
+                  className="horse-btn"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        'Reset to default horses (Keti & Reudo)? This will clear all stats.'
+                      )
+                    ) {
+                      let ketiImg, reudoImg
+                      try {
+                        ketiImg = require('../../img/horse_racing/avatars/keti.png')
+                      } catch (e) {}
+                      try {
+                        reudoImg = require('../../img/horse_racing/avatars/reudo.png')
+                      } catch (e) {}
+                      setHorses([
+                        {
+                          ...mkHorse('Keti', '#ec4899'),
+                          imgSrc: ketiImg,
+                          imgFileName: 'keti.png'
+                        },
+                        {
+                          ...mkHorse('Reudo', '#8b5e3c'),
+                          imgSrc: reudoImg,
+                          imgFileName: 'reudo.png'
+                        }
+                      ])
+                    }
+                  }}
+                  title="Reset to default configuration"
+                >
+                  🔄 Reset to Default
                 </button>
               </div>
             </div>
@@ -919,12 +1138,20 @@ function HorseEditor({ horses, onChange }) {
       <div className="editor-row">
         <label className="editor-label">Sprite Image</label>
         <select
-          value={sel.imgSrc || ''}
-          onChange={(e) => update({ imgSrc: e.target.value || undefined })}
+          value={sel.imgFileName || ''}
+          onChange={(e) => {
+            const fileName = e.target.value
+            if (!fileName) {
+              update({ imgSrc: undefined, imgFileName: undefined })
+            } else {
+              const img = images.find((i) => i.label === fileName)
+              update({ imgSrc: img?.src, imgFileName: fileName })
+            }
+          }}
         >
           <option value="">Default SVG</option>
           {images.map((img) => (
-            <option key={img.src} value={img.src}>
+            <option key={img.label} value={img.label}>
               {img.label}
             </option>
           ))}
@@ -995,6 +1222,65 @@ function HorseEditor({ horses, onChange }) {
           is auto-tinted.
         </p>
       </div>
+
+      {/* Statistics Section */}
+      {(sel.races || 0) > 0 && (
+        <div
+          className="editor-stats"
+          style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            backgroundColor: '#f9fafb',
+            borderRadius: '8px'
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 0.5rem 0',
+              fontSize: '0.9rem',
+              color: '#6b7280'
+            }}
+          >
+            📊 Race Statistics
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem',
+              fontSize: '0.85rem'
+            }}
+          >
+            <div>
+              <strong>Races:</strong> {sel.races || 0}
+            </div>
+            <div>
+              <strong>Wins:</strong> {sel.wins || 0}
+            </div>
+            <div>
+              <strong>Win Rate:</strong>{' '}
+              {(((sel.wins || 0) / (sel.races || 1)) * 100).toFixed(1)}%
+            </div>
+            <div>
+              <strong>Avg Time:</strong>{' '}
+              {sel.races > 0
+                ? msToClock((sel.totalTime || 0) / sel.races)
+                : 'N/A'}
+            </div>
+          </div>
+          <button
+            className="horse-btn small"
+            style={{ marginTop: '0.5rem', width: '100%' }}
+            onClick={() => {
+              if (window.confirm(`Reset statistics for ${sel.name}?`)) {
+                update({ wins: 0, races: 0, totalTime: 0 })
+              }
+            }}
+          >
+            🗑️ Reset Stats
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -1011,12 +1297,17 @@ function mkHorse(name, color) {
     name,
     color,
     imgSrc: undefined,
+    imgFileName: undefined,
     spriteScale: 4,
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,
     progress: 0,
-    rngSeed: Math.floor(Math.random() * 1e9)
+    rngSeed: Math.floor(Math.random() * 1e9),
+    // Stats
+    wins: 0,
+    races: 0,
+    totalTime: 0
   }
 }
 
