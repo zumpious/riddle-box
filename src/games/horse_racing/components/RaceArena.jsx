@@ -597,13 +597,24 @@ function RaceArena({
               />
               {/* Name tag behind the horse, rotated with the sprite */}
               <g transform={`translate(-70, -10)`} pointerEvents="none">
+                {/* Colored pill background */}
+                <rect
+                  x={20 - 25}
+                  y={3 - 10}
+                  width={50}
+                  height={16}
+                  rx={8}
+                  fill={h.color}
+                  opacity={0.85}
+                />
+                {/* White text */}
                 <text
                   x={20}
                   y={3}
                   textAnchor="middle"
-                  fontSize="10"
-                  fill="#0f172a"
-                  fontWeight={600}
+                  fontSize="9"
+                  fill="#ffffff"
+                  fontWeight={700}
                 >
                   {h.name}
                 </text>
