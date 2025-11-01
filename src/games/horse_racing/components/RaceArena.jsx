@@ -25,6 +25,7 @@ const grassBg = loadGrassBackground()
  * @param {number} arenaHeight - Arena height in pixels
  * @param {number} trackThickness - Track thickness value (unused, kept for API compatibility)
  * @param {number} spriteScaleDefault - Default sprite scale
+ * @param {number} startTime - Race start timestamp for live time calculation
  */
 function RaceArena({
   horses,
@@ -35,10 +36,12 @@ function RaceArena({
   laps,
   arenaHeight,
   trackThickness,
-  spriteScaleDefault
+  spriteScaleDefault,
+  startTime
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
 
   // Landscape SVG viewport
   const W = ARENA_WIDTH
@@ -269,6 +272,33 @@ function RaceArena({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Update current time during race for live time display
+  useEffect(() => {
+    // Reset time when not running or finished
+    if (status !== 'running' && status !== 'finished') {
+      setCurrentTime(0)
+      return
+    }
+
+    // If finished, keep the last time - don't update
+    if (status === 'finished') {
+      return
+    }
+
+    // Only update during 'running' status
+    if (!startTime) return
+
+    let animFrame = 0
+    const updateTime = () => {
+      const elapsed = (performance.now() - startTime) / 1000 // Convert to seconds
+      setCurrentTime(elapsed)
+      animFrame = requestAnimationFrame(updateTime)
+    }
+
+    animFrame = requestAnimationFrame(updateTime)
+    return () => cancelAnimationFrame(animFrame)
+  }, [status, startTime])
+
   return (
     <div
       ref={arenaWrapRef}
@@ -405,6 +435,64 @@ function RaceArena({
           />
         </g>
 
+        {/* Live time display - shown always when horses exist */}
+        {horses.length > 0 && (
+          <g>
+            {horses.map((h, idx) => {
+              // Calculate positions across the top in inner area
+              const numHorses = horses.length
+              const spacing = Math.min(220, (W - 100) / numHorses)
+              const startX = cx - ((numHorses - 1) * spacing) / 2
+              const x = startX + idx * spacing
+
+              // Position in the inner grass area (below the track)
+              const yPosition = cy - innerR + 50
+
+              // Get current time or finished time (or 0.00 before race starts)
+              const displayTime = h.finishedAtMs
+                ? (h.finishedAtMs / 1000).toFixed(2)
+                : currentTime.toFixed(2)
+
+              return (
+                <g key={h.id}>
+                  {/* Background pill - colored background fills entire pill */}
+                  <rect
+                    x={x - 55}
+                    y={yPosition}
+                    width={110}
+                    height={32}
+                    rx={16}
+                    fill={h.color}
+                    opacity={0.85}
+                  />
+                  {/* Horse name */}
+                  <text
+                    x={x}
+                    y={yPosition + 15}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight={700}
+                    fill="#ffffff"
+                  >
+                    {h.name}
+                  </text>
+                  {/* Time */}
+                  <text
+                    x={x}
+                    y={yPosition + 26}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fontWeight={600}
+                    fill="#ffffff"
+                  >
+                    {displayTime}s
+                  </text>
+                </g>
+              )
+            })}
+          </g>
+        )}
+
         {/* Center lap indicator */}
         {horses.length > 0 && !horses.some((h) => h.finishedAtMs) && (
           <g>
@@ -447,24 +535,15 @@ function RaceArena({
 
             return (
               <g>
-                {/* Background pill for winner */}
+                {/* Background pill for winner - fully colored */}
                 <rect
                   x={cx - 130}
                   y={cy - 28}
                   width={260}
                   height={56}
                   rx={28}
-                  fill="white"
-                  opacity={0.95}
-                />
-                <rect
-                  x={cx - 124}
-                  y={cy - 22}
-                  width={248}
-                  height={44}
-                  rx={22}
                   fill={winner.color}
-                  opacity={0.3}
+                  opacity={0.9}
                 />
                 {/* Winner text */}
                 <text
@@ -473,7 +552,7 @@ function RaceArena({
                   textAnchor="middle"
                   fontSize="14"
                   fontWeight={600}
-                  fill="#475569"
+                  fill="#ffffff"
                 >
                   🏆 Winner
                 </text>
@@ -483,7 +562,7 @@ function RaceArena({
                   textAnchor="middle"
                   fontSize="22"
                   fontWeight={800}
-                  fill={winner.color}
+                  fill="#ffffff"
                 >
                   {winner.name}: {timeInSeconds}s
                 </text>

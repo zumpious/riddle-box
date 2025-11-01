@@ -551,6 +551,7 @@ const HorseRacing = () => {
                 arenaHeight={arenaHeight}
                 trackThickness={trackThicknessUi}
                 spriteScaleDefault={spriteScaleDefault}
+                startTime={startTime}
               />
             </div>
 
