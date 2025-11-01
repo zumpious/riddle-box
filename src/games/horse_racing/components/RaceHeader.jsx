@@ -10,6 +10,7 @@ import './RaceHeader.css'
  * @param {string} raceName - Name of the race
  * @param {string} status - Current race status
  * @param {Function} onStartRace - Callback to start the race
+ * @param {Function} onStartIntroduction - Callback to start pre-race introduction
  * @param {Function} onStopRace - Callback to force stop the race
  * @param {Function} onAddHorse - Callback to add a new horse
  * @param {Array} horses - Current array of horse objects
@@ -19,6 +20,7 @@ function RaceHeader({
   raceName,
   status,
   onStartRace,
+  onStartIntroduction,
   onStopRace,
   onAddHorse,
   horses,
@@ -35,10 +37,18 @@ function RaceHeader({
         <p>Run a party race, track lap times, and crown a winner.</p>
       </div>
       <div className="horse-actions">
-        {(status === 'idle' || status === 'finished') && (
-          <button onClick={onStartRace} className="horse-btn primary">
-            Start Race
-          </button>
+        {(status === 'idle' ||
+          status === 'finished' ||
+          status === 'introduction') && (
+          <>
+            <button onClick={onStartIntroduction} className="horse-btn intro">
+              🎬{' '}
+              {status === 'introduction' ? 'Restart Intro' : 'Pre-Race Intro'}
+            </button>
+            <button onClick={onStartRace} className="horse-btn primary">
+              Start Race
+            </button>
+          </>
         )}
         {status === 'running' && (
           <button onClick={onStopRace} className="horse-btn">

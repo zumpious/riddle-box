@@ -41,6 +41,11 @@
   width: 100%;
 }
 
+.horse-arena {
+  position: relative;
+  width: 100%;
+}
+
 .horse-settings,
 .horse-panels {
   width: 1200px;
@@ -86,6 +91,18 @@
 
 .horse-btn.primary:hover {
   background: #1e293b;
+}
+
+.horse-btn.intro {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.horse-btn.intro:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .horse-btn.small {

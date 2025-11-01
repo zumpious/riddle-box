@@ -48,10 +48,14 @@ export const DEFAULT_HORSES = [
 // Race status values
 export const RACE_STATUS = {
   IDLE: 'idle',
+  INTRODUCTION: 'introduction',
   COUNTDOWN: 'countdown',
   RUNNING: 'running',
   FINISHED: 'finished'
 }
+
+// Introduction settings
+export const INTRO_DURATION_PER_HORSE = 3000 // milliseconds per horse intro
 
 // Input ranges
 export const RANGES = {

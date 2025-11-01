@@ -35,6 +35,7 @@ import {
   DEFAULT_SPRITE_SCALE,
   DEFAULT_HORSES,
   RACE_STATUS,
+  INTRO_DURATION_PER_HORSE,
   VARIANCE_MULTIPLIER,
   FATIGUE_MULTIPLIER,
   MIN_SPEED,
@@ -115,6 +116,10 @@ const HorseRacing = () => {
   const [status, setStatus] = useState(RACE_STATUS.IDLE)
   const [startTime, setStartTime] = useState(null)
   const [audioEnabled, setAudioEnabled] = useState(false)
+
+  // Introduction state
+  const [introductionIndex, setIntroductionIndex] = useState(0)
+  const [introductionComplete, setIntroductionComplete] = useState(false)
 
   // Audio refs
   const raceStartAudioRef = useRef(null)
@@ -260,6 +265,25 @@ const HorseRacing = () => {
     setStatus(RACE_STATUS.RUNNING)
   }, [])
 
+  // Introduction sequence - cycle through horses
+  useEffect(() => {
+    if (status !== RACE_STATUS.INTRODUCTION) return
+    if (horses.length === 0) return
+
+    // If all horses have been introduced, mark as complete
+    if (introductionIndex >= horses.length) {
+      setIntroductionComplete(true)
+      return
+    }
+
+    // Cycle to next horse after INTRO_DURATION_PER_HORSE
+    const timer = setTimeout(() => {
+      setIntroductionIndex((prev) => prev + 1)
+    }, INTRO_DURATION_PER_HORSE)
+
+    return () => clearTimeout(timer)
+  }, [status, introductionIndex, horses.length])
+
   // Countdown timer
   useEffect(() => {
     if (status !== RACE_STATUS.COUNTDOWN) return
@@ -275,6 +299,30 @@ const HorseRacing = () => {
     }, 1000)
     return () => clearInterval(id)
   }, [status, go])
+
+  const startIntroduction = useCallback(() => {
+    // Don't allow re-trigger during active race
+    if (status === RACE_STATUS.RUNNING || status === RACE_STATUS.COUNTDOWN)
+      return
+
+    // Load fresh horses from roster based on current selection
+    const selectedHorses = characterRoster
+      .filter((c) => selectedCharacterIds.includes(c.id))
+      .map((c) => ({
+        ...c,
+        progress: 0,
+        finishedAtMs: undefined,
+        rngSeed: Math.floor(Math.random() * 1e9)
+      }))
+    setHorses(selectedHorses)
+
+    // Reset introduction state
+    setIntroductionIndex(0)
+    setIntroductionComplete(false)
+
+    // Start introduction phase
+    setStatus(RACE_STATUS.INTRODUCTION)
+  }, [status, characterRoster, selectedCharacterIds])
 
   const startCountdown = useCallback(() => {
     if (status === RACE_STATUS.RUNNING) return
@@ -312,16 +360,18 @@ const HorseRacing = () => {
       }
     }
 
-    // Load fresh horses from roster based on current selection
-    const selectedHorses = characterRoster
-      .filter((c) => selectedCharacterIds.includes(c.id))
-      .map((c) => ({
-        ...c,
-        progress: 0,
-        finishedAtMs: undefined,
-        rngSeed: Math.floor(Math.random() * 1e9)
-      }))
-    setHorses(selectedHorses)
+    // Load fresh horses from roster based on current selection (if not coming from intro)
+    if (status !== RACE_STATUS.INTRODUCTION) {
+      const selectedHorses = characterRoster
+        .filter((c) => selectedCharacterIds.includes(c.id))
+        .map((c) => ({
+          ...c,
+          progress: 0,
+          finishedAtMs: undefined,
+          rngSeed: Math.floor(Math.random() * 1e9)
+        }))
+      setHorses(selectedHorses)
+    }
 
     // Start countdown with 300ms delay
     setTimeout(() => {
@@ -489,9 +539,31 @@ const HorseRacing = () => {
     const onKeyDown = (e) => {
       if (isTypingTarget(e.target)) return
 
-      // Space to start (only when idle or finished)
+      // 'i' or 'I' to start/restart introduction sequence
+      if (e.key === 'i' || e.key === 'I') {
+        if (
+          status === RACE_STATUS.IDLE ||
+          status === RACE_STATUS.FINISHED ||
+          status === RACE_STATUS.INTRODUCTION
+        ) {
+          e.preventDefault()
+          startIntroduction()
+        }
+        return
+      }
+
+      // Space to start countdown
       if (e.code === 'Space' || e.key === ' ') {
-        if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
+        // After introduction is complete, start countdown
+        if (status === RACE_STATUS.INTRODUCTION && introductionComplete) {
+          e.preventDefault()
+          startCountdown()
+        }
+        // From idle or finished, start countdown directly (skip intro)
+        else if (
+          status === RACE_STATUS.IDLE ||
+          status === RACE_STATUS.FINISHED
+        ) {
           e.preventDefault()
           startCountdown()
         }
@@ -522,7 +594,13 @@ const HorseRacing = () => {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [status, startCountdown, characterRoster])
+  }, [
+    status,
+    startCountdown,
+    startIntroduction,
+    characterRoster,
+    introductionComplete
+  ])
 
   const handleAddHorse = (newHorse) => {
     newHorse.createdAt = Date.now()
@@ -552,6 +630,8 @@ const HorseRacing = () => {
                 trackThickness={trackThicknessUi}
                 spriteScaleDefault={spriteScaleDefault}
                 startTime={startTime}
+                introductionIndex={introductionIndex}
+                introductionComplete={introductionComplete}
               />
             </div>
 
@@ -595,6 +675,7 @@ const HorseRacing = () => {
               raceName={raceName}
               status={status}
               onStartRace={startCountdown}
+              onStartIntroduction={startIntroduction}
               onStopRace={stop}
               onAddHorse={handleAddHorse}
               horses={horses}
@@ -619,8 +700,10 @@ const HorseRacing = () => {
 
             <div className="horse-tip">
               💡 Tip: Press <strong>F</strong> for fullscreen · Press{' '}
-              <strong>Space</strong> to start race · <strong>+</strong>/
-              <strong>-</strong> to add/remove horses
+              <strong>I</strong> to start/restart intro (then{' '}
+              <strong>Space</strong> to race) · Press <strong>Space</strong> to
+              start race directly · <strong>+</strong>/<strong>-</strong> to
+              add/remove horses
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import HorseSprite from './HorseSprite'
+import HorseIntroduction from './HorseIntroduction'
 import { loadGrassBackground } from '../utils/assetLoader'
 import {
   ARENA_WIDTH,
@@ -26,6 +27,8 @@ const grassBg = loadGrassBackground()
  * @param {number} trackThickness - Track thickness value (unused, kept for API compatibility)
  * @param {number} spriteScaleDefault - Default sprite scale
  * @param {number} startTime - Race start timestamp for live time calculation
+ * @param {number} introductionIndex - Current horse being introduced
+ * @param {boolean} introductionComplete - Whether all introductions are complete
  */
 function RaceArena({
   horses,
@@ -37,7 +40,9 @@ function RaceArena({
   arenaHeight,
   trackThickness,
   spriteScaleDefault,
-  startTime
+  startTime,
+  introductionIndex,
+  introductionComplete
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -641,6 +646,15 @@ function RaceArena({
           </g>
         )}
       </svg>
+
+      {/* Horse Introduction Overlay - inside arena-wrap for fullscreen visibility */}
+      {status === 'introduction' && horses.length > 0 && (
+        <HorseIntroduction
+          horses={horses}
+          currentIndex={introductionIndex}
+          allComplete={introductionComplete}
+        />
+      )}
     </div>
   )
 }
