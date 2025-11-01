@@ -8,9 +8,15 @@ import RaceSettings from './components/RaceSettings'
 import HorseList from './components/HorseList'
 import HorseEditor from './components/HorseEditor'
 import RaceResults from './components/RaceResults'
+import CharacterManager from './components/CharacterManager'
 
 // Utilities
-import { saveConfig, loadConfig } from './utils/configStorage'
+import {
+  saveCharacterRoster,
+  loadCharacterRoster,
+  saveSelectedCharacters,
+  loadSelectedCharacters
+} from './utils/characterStorage'
 import { mkHorse, randomColor, lcg } from './utils/raceHelpers'
 import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
 
@@ -57,13 +63,13 @@ const HorseRacing = () => {
   const [spriteScaleDefault, setSpriteScaleDefault] =
     useState(DEFAULT_SPRITE_SCALE)
 
-  // Initialize horses with saved config or defaults
-  const [horses, setHorses] = useState(() => {
-    const savedConfig = loadConfig()
+  // Character Roster System - permanent storage of all characters
+  const [characterRoster, setCharacterRoster] = useState(() => {
+    const savedRoster = loadCharacterRoster()
     const availableImages = loadHorseImages()
 
-    if (savedConfig && savedConfig.length > 0) {
-      return savedConfig.map((cfg) => {
+    if (savedRoster && savedRoster.length > 0) {
+      return savedRoster.map((cfg) => {
         let imgSrc = cfg.imgSrc
         if (cfg.imgFileName) {
           const match = availableImages.find(
@@ -71,21 +77,39 @@ const HorseRacing = () => {
           )
           if (match) imgSrc = match.src
         }
-        return {
-          ...cfg,
-          imgSrc,
-          progress: 0,
-          finishedAtMs: null
-        }
+        return { ...cfg, imgSrc }
       })
     }
 
-    // Default horses
+    // Initialize with default horses
     return DEFAULT_HORSES.map((cfg) => ({
       ...mkHorse(cfg.name, cfg.color),
       imgSrc: loadAvatarImage(cfg.fileName),
-      imgFileName: cfg.fileName
+      imgFileName: cfg.fileName,
+      createdAt: Date.now()
     }))
+  })
+
+  // Selected characters for current race
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState(() => {
+    const savedSelection = loadSelectedCharacters()
+    if (savedSelection && savedSelection.length > 0) {
+      return savedSelection
+    }
+    // By default, select all characters
+    return characterRoster.map((c) => c.id)
+  })
+
+  // Horses in the current race (independent from roster during race)
+  const [horses, setHorses] = useState(() => {
+    // Initialize once on mount
+    return characterRoster
+      .filter((c) => selectedCharacterIds.includes(c.id))
+      .map((c) => ({
+        ...c,
+        progress: 0,
+        finishedAtMs: null
+      }))
   })
 
   const [status, setStatus] = useState(RACE_STATUS.IDLE)
@@ -288,21 +312,28 @@ const HorseRacing = () => {
       }
     }
 
-    // reset race
-    setHorses((curr) =>
-      curr.map((h) => ({
-        ...h,
+    // Load fresh horses from roster based on current selection
+    const selectedHorses = characterRoster
+      .filter((c) => selectedCharacterIds.includes(c.id))
+      .map((c) => ({
+        ...c,
         progress: 0,
         finishedAtMs: undefined,
         rngSeed: Math.floor(Math.random() * 1e9)
       }))
-    )
+    setHorses(selectedHorses)
 
     // Start countdown with 300ms delay
     setTimeout(() => {
       setStatus(RACE_STATUS.COUNTDOWN)
     }, 300)
-  }, [status, baseBackgroundVolume, racingBackgroundVolume])
+  }, [
+    status,
+    baseBackgroundVolume,
+    racingBackgroundVolume,
+    characterRoster,
+    selectedCharacterIds
+  ])
 
   const stop = () => setStatus(RACE_STATUS.FINISHED)
 
@@ -365,10 +396,82 @@ const HorseRacing = () => {
     racingBackgroundVolume
   ])
 
-  // Auto-save horses to localStorage whenever they change
+  // Auto-save character roster whenever it changes
   useEffect(() => {
-    saveConfig(horses)
-  }, [horses])
+    saveCharacterRoster(characterRoster)
+  }, [characterRoster])
+
+  // Auto-save selection whenever it changes
+  useEffect(() => {
+    saveSelectedCharacters(selectedCharacterIds)
+  }, [selectedCharacterIds])
+
+  // Track previous selection to detect real changes
+  const prevSelectionRef = useRef(selectedCharacterIds)
+
+  // Sync horses with selection when selection changes (not racing)
+  useEffect(() => {
+    const prevSelection = prevSelectionRef.current
+    const currentSelection = selectedCharacterIds
+
+    // Check if selection actually changed (not just a re-render)
+    const selectionChanged =
+      prevSelection.length !== currentSelection.length ||
+      prevSelection.some((id) => !currentSelection.includes(id)) ||
+      currentSelection.some((id) => !prevSelection.includes(id))
+
+    if (selectionChanged) {
+      // Update the ref to track current selection
+      prevSelectionRef.current = currentSelection
+
+      // Only update horses when race is not actively running
+      if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
+        const updatedHorses = characterRoster
+          .filter((c) => currentSelection.includes(c.id))
+          .map((c) => ({
+            ...c,
+            progress: 0,
+            finishedAtMs: null
+          }))
+        setHorses(updatedHorses)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCharacterIds, status])
+
+  // Update character stats in roster after race finishes
+  const rosterUpdateRef = useRef(false)
+
+  useEffect(() => {
+    if (
+      status === RACE_STATUS.FINISHED &&
+      horses.length > 0 &&
+      !rosterUpdateRef.current
+    ) {
+      // Mark that we're updating to prevent multiple updates
+      rosterUpdateRef.current = true
+
+      setCharacterRoster((currentRoster) => {
+        return currentRoster.map((char) => {
+          const raceHorse = horses.find((h) => h.id === char.id)
+          if (raceHorse) {
+            return {
+              ...char,
+              wins: raceHorse.wins,
+              races: raceHorse.races,
+              totalTime: raceHorse.totalTime
+            }
+          }
+          return char
+        })
+      })
+    }
+
+    // Reset the flag when status changes away from FINISHED
+    if (status !== RACE_STATUS.FINISHED) {
+      rosterUpdateRef.current = false
+    }
+  }, [status, horses])
 
   // Keyboard shortcuts: Space -> start race, '+' -> add horse, '-' -> remove last
   useEffect(() => {
@@ -395,33 +498,41 @@ const HorseRacing = () => {
         return
       }
 
-      // '+' to add a horse (support numpad add)
+      // '+' to add a character to roster and select it
       if (e.key === '+' || e.code === 'NumpadAdd') {
         e.preventDefault()
-        setHorses((hs) => [
-          ...hs,
-          mkHorse(`New Horse ${hs.length + 1}`, randomColor())
-        ])
+        const newChar = mkHorse(
+          `Horse ${characterRoster.length + 1}`,
+          randomColor()
+        )
+        newChar.createdAt = Date.now()
+        setCharacterRoster((roster) => [...roster, newChar])
+        setSelectedCharacterIds((ids) => [...ids, newChar.id])
         return
       }
 
-      // '-' to remove last horse (support numpad subtract)
+      // '-' to deselect last selected horse
       if (e.key === '-' || e.code === 'NumpadSubtract') {
         e.preventDefault()
-        setHorses((hs) => (hs.length > 0 ? hs.slice(0, -1) : hs))
+        setSelectedCharacterIds((ids) =>
+          ids.length > 0 ? ids.slice(0, -1) : ids
+        )
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [status, startCountdown])
+  }, [status, startCountdown, characterRoster])
 
   const handleAddHorse = (newHorse) => {
-    setHorses((hs) => [...hs, newHorse])
+    newHorse.createdAt = Date.now()
+    setCharacterRoster((roster) => [...roster, newHorse])
+    setSelectedCharacterIds((ids) => [...ids, newHorse.id])
   }
 
   const handleRemoveHorse = (horseId) => {
-    setHorses((hs) => hs.filter((x) => x.id !== horseId))
+    // Remove from selection (but keep in roster)
+    setSelectedCharacterIds((ids) => ids.filter((id) => id !== horseId))
   }
 
   return (
@@ -445,11 +556,40 @@ const HorseRacing = () => {
 
             <div className="horse-panels">
               <HorseList horses={horses} onRemove={handleRemoveHorse} />
-              <HorseEditor horses={horses} onChange={setHorses} />
+              <HorseEditor
+                horses={horses}
+                onChange={(updatedHorses) => {
+                  // Update current race horses (for immediate UI feedback)
+                  setHorses(updatedHorses)
+
+                  // Update horses in the character roster (for persistence)
+                  const updatedRoster = characterRoster.map((char) => {
+                    const updated = updatedHorses.find((h) => h.id === char.id)
+                    return updated ? { ...char, ...updated } : char
+                  })
+                  setCharacterRoster(updatedRoster)
+                }}
+              />
             </div>
           </div>
 
           <div className="horse-col-right">
+            {/* Character Manager Button */}
+            <div
+              style={{
+                marginBottom: '1rem',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <CharacterManager
+                characterRoster={characterRoster}
+                selectedIds={selectedCharacterIds}
+                onRosterChange={setCharacterRoster}
+                onSelectionChange={setSelectedCharacterIds}
+              />
+            </div>
+
             <RaceHeader
               raceName={raceName}
               status={status}
