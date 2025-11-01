@@ -326,8 +326,9 @@ const HorseRacing = () => {
             <RaceResults horses={horses} status={status} />
 
             <div className="horse-tip">
-              Tip: replace the default horse shape with your own SVG path in the
-              editor.
+              💡 Tip: Press <strong>F</strong> for fullscreen · Press{' '}
+              <strong>Space</strong> to start race · <strong>+</strong>/
+              <strong>-</strong> to add/remove horses
             </div>
           </div>
         </div>

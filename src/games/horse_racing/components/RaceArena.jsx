@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import HorseSprite from './HorseSprite'
 import { loadGrassBackground } from '../utils/assetLoader'
 import {
@@ -37,6 +37,9 @@ function RaceArena({
   trackThickness,
   spriteScaleDefault
 }) {
+  const arenaWrapRef = useRef(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
   // Landscape SVG viewport
   const W = ARENA_WIDTH
   const H = arenaHeight || 700
@@ -224,8 +227,85 @@ function RaceArena({
   const finishPose = poseOnStadium(sFinish, trackCenterR, straightLen)
   const finishRotDeg = (finishPose.headingRad * 180) / Math.PI + 90 // perpendicular to tangent
 
+  // Fullscreen functionality
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      arenaWrapRef.current?.requestFullscreen().catch((err) => {
+        console.error('Error attempting to enable fullscreen:', err)
+      })
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
+  // Listen for fullscreen changes (including ESC key)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
+  // Keyboard shortcut: F key to toggle fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only trigger if not typing in an input
+      const isTyping =
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'TEXTAREA' ||
+        e.target.isContentEditable
+
+      if (!isTyping && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault()
+        toggleFullscreen()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
-    <div className="arena-wrap">
+    <div
+      ref={arenaWrapRef}
+      className={`arena-wrap ${isFullscreen ? 'fullscreen' : ''}`}
+    >
+      {/* Fullscreen toggle button */}
+      <button
+        className="fullscreen-btn"
+        onClick={toggleFullscreen}
+        title={isFullscreen ? 'Exit Fullscreen (F or ESC)' : 'Fullscreen (F)'}
+        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+      >
+        {isFullscreen ? (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+          </svg>
+        ) : (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+          </svg>
+        )}
+      </button>
+
       <svg viewBox={`0 0 ${W} ${H}`} className="arena-svg">
         <defs>
           {/* Grass background gradient (fallback) */}

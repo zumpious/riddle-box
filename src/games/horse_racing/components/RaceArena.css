@@ -9,11 +9,79 @@
 }
 
 .arena-wrap {
+  position: relative;
   width: 100%;
   overflow: auto;
+}
+
+/* Fullscreen mode */
+.arena-wrap.fullscreen {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arena-wrap:fullscreen {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .arena-svg {
   width: 100%;
   height: auto;
+}
+
+/* Fullscreen button */
+.fullscreen-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fullscreen-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+.fullscreen-btn svg {
+  display: block;
+  color: #334155;
+}
+
+/* In fullscreen mode, make button slightly more visible */
+.arena-wrap.fullscreen .fullscreen-btn,
+.arena-wrap:fullscreen .fullscreen-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.arena-wrap.fullscreen .fullscreen-btn:hover,
+.arena-wrap:fullscreen .fullscreen-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.arena-wrap.fullscreen .fullscreen-btn svg,
+.arena-wrap:fullscreen .fullscreen-btn svg {
+  color: #ffffff;
 }
