@@ -9,6 +9,7 @@ import {
   LANE_GAP_MULTIPLIER
 } from '../constants'
 import './RaceArena.css'
+import finishLineImg from '../../../img/horse_racing/background/finish_line.png'
 
 // Try to load background image, fallback to undefined
 const grassBg = loadGrassBackground()
@@ -427,16 +428,17 @@ function RaceArena({
 
         {/* Start/Finish line, placed where the configured race would end */}
         {/* Line spans from innerR to outerR, perpendicular to track at finish position */}
-        {/* finishPose is at trackCenterR; center rectangle spans full track width */}
+        {/* finishPose is at trackCenterR; center image spans full track width */}
         <g
           transform={`translate(${finishPose.x}, ${finishPose.y}) rotate(${finishRotDeg})`}
         >
-          <rect
+          <image
+            href={finishLineImg}
             x={-(outerR - innerR) / 2}
-            y={-3}
+            y={-15}
             width={outerR - innerR}
-            height={6}
-            fill="#0f172a"
+            height={30}
+            preserveAspectRatio="none"
           />
         </g>
 
