@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import './HorseRacing.css'
 
 // Components
@@ -13,6 +13,10 @@ import RaceResults from './components/RaceResults'
 import { saveConfig, loadConfig } from './utils/configStorage'
 import { mkHorse, randomColor, lcg } from './utils/raceHelpers'
 import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
+
+// Sound effects
+import raceStartSound from './sounds/race_start.mp3'
+import backgroundMusic from './sounds/background.mp3'
 
 // Constants
 import {
@@ -86,6 +90,85 @@ const HorseRacing = () => {
 
   const [status, setStatus] = useState(RACE_STATUS.IDLE)
   const [startTime, setStartTime] = useState(null)
+  const [audioEnabled, setAudioEnabled] = useState(false)
+
+  // Audio refs
+  const raceStartAudioRef = useRef(null)
+  const backgroundMusicRef = useRef(null)
+  const baseBackgroundVolume = 0.15 // 15% base volume for background music
+  const racingBackgroundVolume = 0.25 // 25% volume during race (10% louder)
+
+  // Initialize audio on mount
+  useEffect(() => {
+    console.log('🎵 Initializing audio...')
+
+    // Race start sound
+    raceStartAudioRef.current = new Audio(raceStartSound)
+    raceStartAudioRef.current.volume = 0.5 // 50% volume for race start
+    console.log('✅ Race start sound loaded')
+
+    // Background music - loop and autoplay
+    backgroundMusicRef.current = new Audio(backgroundMusic)
+    backgroundMusicRef.current.volume = baseBackgroundVolume
+    backgroundMusicRef.current.loop = true // Infinite loop
+    console.log('✅ Background music loaded, attempting autoplay...')
+
+    // Try to start background music
+    const playPromise = backgroundMusicRef.current.play()
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('✅ Background music playing automatically!')
+          setAudioEnabled(true)
+        })
+        .catch((err) => {
+          console.warn(
+            '⚠️ Background music autoplay blocked by browser:',
+            err.message
+          )
+          console.log('💡 Click anywhere on the page to enable audio')
+          setAudioEnabled(false)
+        })
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (backgroundMusicRef.current) {
+        backgroundMusicRef.current.pause()
+        backgroundMusicRef.current = null
+      }
+    }
+  }, [])
+
+  // Try to start audio on first user interaction
+  useEffect(() => {
+    const enableAudio = () => {
+      if (!audioEnabled && backgroundMusicRef.current) {
+        console.log(
+          '🖱️ User interaction detected, starting background music...'
+        )
+        backgroundMusicRef.current
+          .play()
+          .then(() => {
+            console.log('✅ Background music started!')
+            setAudioEnabled(true)
+          })
+          .catch((err) => {
+            console.error('❌ Failed to start background music:', err)
+          })
+      }
+    }
+
+    // Listen for any user interaction
+    document.addEventListener('click', enableAudio, { once: true })
+    document.addEventListener('keydown', enableAudio, { once: true })
+
+    return () => {
+      document.removeEventListener('click', enableAudio)
+      document.removeEventListener('keydown', enableAudio)
+    }
+  }, [audioEnabled])
 
   // Derived values
   const totalDistance = lapLengthPx * laps
@@ -171,6 +254,40 @@ const HorseRacing = () => {
 
   const startCountdown = useCallback(() => {
     if (status === RACE_STATUS.RUNNING) return
+
+    // Play race start sound immediately
+    if (raceStartAudioRef.current) {
+      raceStartAudioRef.current.currentTime = 0 // Reset to start
+
+      raceStartAudioRef.current.play().catch((err) => {
+        // Handle autoplay restrictions gracefully
+        console.log('Audio play prevented:', err)
+      })
+
+      // When race start sound ends, increase background music volume
+      raceStartAudioRef.current.onended = () => {
+        if (backgroundMusicRef.current) {
+          // Smoothly transition to louder volume
+          const fadeSteps = 20
+          const volumeIncrement =
+            (racingBackgroundVolume - baseBackgroundVolume) / fadeSteps
+          let step = 0
+
+          const fadeInterval = setInterval(() => {
+            if (step >= fadeSteps || !backgroundMusicRef.current) {
+              clearInterval(fadeInterval)
+              return
+            }
+            backgroundMusicRef.current.volume = Math.min(
+              racingBackgroundVolume,
+              baseBackgroundVolume + volumeIncrement * step
+            )
+            step++
+          }, 50) // 50ms intervals = 1 second total fade
+        }
+      }
+    }
+
     // reset race
     setHorses((curr) =>
       curr.map((h) => ({
@@ -180,8 +297,12 @@ const HorseRacing = () => {
         rngSeed: Math.floor(Math.random() * 1e9)
       }))
     )
-    setStatus(RACE_STATUS.COUNTDOWN)
-  }, [status])
+
+    // Start countdown with 300ms delay
+    setTimeout(() => {
+      setStatus(RACE_STATUS.COUNTDOWN)
+    }, 300)
+  }, [status, baseBackgroundVolume, racingBackgroundVolume])
 
   const stop = () => setStatus(RACE_STATUS.FINISHED)
 
@@ -193,6 +314,29 @@ const HorseRacing = () => {
       horses.length > 0
     ) {
       setStatus(RACE_STATUS.FINISHED)
+
+      // Lower background music volume back to base when race finishes
+      if (backgroundMusicRef.current) {
+        const fadeSteps = 20
+        const volumeDecrement =
+          (racingBackgroundVolume - baseBackgroundVolume) / fadeSteps
+        let step = 0
+
+        const fadeInterval = setInterval(() => {
+          if (step >= fadeSteps || !backgroundMusicRef.current) {
+            clearInterval(fadeInterval)
+            if (backgroundMusicRef.current) {
+              backgroundMusicRef.current.volume = baseBackgroundVolume
+            }
+            return
+          }
+          backgroundMusicRef.current.volume = Math.max(
+            baseBackgroundVolume,
+            racingBackgroundVolume - volumeDecrement * step
+          )
+          step++
+        }, 50) // 50ms intervals = 1 second total fade
+      }
 
       // Update win statistics
       const winner = horses.reduce((best, h) => {
@@ -212,7 +356,14 @@ const HorseRacing = () => {
         )
       }
     }
-  }, [finishedCount, status, horses.length, horses])
+  }, [
+    finishedCount,
+    status,
+    horses.length,
+    horses,
+    baseBackgroundVolume,
+    racingBackgroundVolume
+  ])
 
   // Auto-save horses to localStorage whenever they change
   useEffect(() => {
