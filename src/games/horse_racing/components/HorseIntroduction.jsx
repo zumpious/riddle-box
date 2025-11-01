@@ -109,12 +109,15 @@ function HorseIntroduction({ horses, currentIndex, allComplete }) {
 
         {/* Progress Indicator */}
         <div className="intro-progress">
-          {horses.map((_, idx) => (
+          {horses.map((h, idx) => (
             <div
               key={idx}
               className={`intro-progress-dot ${
                 idx === currentIndex ? 'active' : ''
               } ${idx < currentIndex ? 'complete' : ''}`}
+              style={{
+                '--dot-color': h.color
+              }}
             />
           ))}
         </div>

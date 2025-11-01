@@ -138,12 +138,18 @@
   border: 5px solid var(--horse-color, #ffffff);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s backwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .intro-horse-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
 }
 
 .intro-horse-placeholder {
@@ -284,14 +290,14 @@
 }
 
 .intro-progress-dot.active {
-  background: #3b82f6;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  background: var(--dot-color, #3b82f6);
+  box-shadow: 0 0 20px var(--dot-color, rgba(59, 130, 246, 0.8));
   transform: scale(1.5);
 }
 
 .intro-progress-dot.complete {
-  background: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  background: var(--dot-color, #10b981);
+  box-shadow: 0 0 10px var(--dot-color, rgba(16, 185, 129, 0.5));
 }
 
 /* Completion Message */
@@ -359,6 +365,7 @@
   .intro-horse-image {
     width: 150px;
     height: 150px;
+    /* Maintain flexbox centering on mobile */
   }
 
   .intro-name-text {
