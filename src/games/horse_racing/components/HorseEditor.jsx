@@ -127,6 +127,7 @@ function HorseEditor({ horses, onChange }) {
           Reset SVG
         </button>
 
+        {/* Statistics Section
         <div className="editor-advanced">
           <label className="editor-label">Custom SVG Path (advanced)</label>
           <textarea
@@ -140,6 +141,7 @@ function HorseEditor({ horses, onChange }) {
             sprite is auto-tinted.
           </p>
         </div>
+        */}
 
         {/* Statistics Section */}
         {(sel.races || 0) > 0 && (
