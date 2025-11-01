@@ -1,0 +1,18 @@
+.config-manager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.config-import-label {
+  cursor: pointer;
+  margin: 0;
+}
+
+.config-file-input {
+  display: none;
+}

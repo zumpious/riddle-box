@@ -1,152 +1,65 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import './HorseRacing.css'
 
-// Try to load background image, fallback to undefined
-let grassBg
-try {
-  grassBg = require('../../img/horse_racing/background/grass.png')
-} catch (e) {
-  // No background image found, will use gradient
-}
+// Components
+import RaceArena from './components/RaceArena'
+import RaceHeader from './components/RaceHeader'
+import RaceSettings from './components/RaceSettings'
+import HorseList from './components/HorseList'
+import HorseEditor from './components/HorseEditor'
+import RaceResults from './components/RaceResults'
 
-// ---------- Config Storage ----------
-const STORAGE_KEY = 'horse-racing-config'
+// Utilities
+import { saveConfig, loadConfig } from './utils/configStorage'
+import { mkHorse, randomColor, lcg } from './utils/raceHelpers'
+import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
 
-function saveConfig(horses) {
-  const config = horses.map((h) => ({
-    id: h.id,
-    name: h.name,
-    color: h.color,
-    imgSrc: h.imgSrc,
-    imgFileName: h.imgFileName, // Store the filename for matching
-    spriteScale: h.spriteScale,
-    baseSpeed: h.baseSpeed,
-    stamina: h.stamina,
-    variance: h.variance,
-    rngSeed: h.rngSeed,
-    // Stats
-    wins: h.wins || 0,
-    races: h.races || 0,
-    totalTime: h.totalTime || 0
-  }))
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
-}
+// Constants
+import {
+  DEFAULT_LAP_LENGTH,
+  DEFAULT_LAPS,
+  DEFAULT_RACE_NAME,
+  DEFAULT_COUNTDOWN,
+  DEFAULT_ARENA_HEIGHT,
+  DEFAULT_TRACK_THICKNESS,
+  DEFAULT_SPRITE_SCALE,
+  DEFAULT_HORSES,
+  RACE_STATUS,
+  VARIANCE_MULTIPLIER,
+  FATIGUE_MULTIPLIER,
+  MIN_SPEED,
+  SPRINT_THRESHOLD,
+  STUMBLE_THRESHOLD,
+  SPRINT_BOOST,
+  STUMBLE_PENALTY
+} from './constants'
 
-function loadConfig() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    if (!data) return null
-    return JSON.parse(data)
-  } catch (e) {
-    console.error('Failed to load config:', e)
-    return null
-  }
-}
-
-function exportConfig(horses) {
-  const config = horses.map((h) => ({
-    id: h.id,
-    name: h.name,
-    color: h.color,
-    imgFileName: h.imgFileName,
-    spriteScale: h.spriteScale,
-    baseSpeed: h.baseSpeed,
-    stamina: h.stamina,
-    variance: h.variance,
-    rngSeed: h.rngSeed,
-    wins: h.wins || 0,
-    races: h.races || 0,
-    totalTime: h.totalTime || 0
-  }))
-  const blob = new Blob([JSON.stringify(config, null, 2)], {
-    type: 'application/json'
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `horse-racing-config-${Date.now()}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-function importConfig(file, callback) {
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    try {
-      const config = JSON.parse(e.target.result)
-      callback(config)
-    } catch (err) {
-      console.error('Failed to parse config:', err)
-      alert('Invalid configuration file')
-    }
-  }
-  reader.readAsText(file)
-}
-
-// ---------- Utilities ----------
-function lcg(seed) {
-  // simple deterministic RNG (0..1)
-  let state = seed >>> 0 || 123456789
-  return () => (state = (1664525 * state + 1013904223) >>> 0) / 2 ** 32
-}
-
-function msToClock(ms) {
-  const m = Math.floor(ms / 60000)
-  const s = Math.floor((ms % 60000) / 1000)
-  const cs = Math.floor((ms % 1000) / 10)
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(
-    cs
-  ).padStart(2, '0')}`
-}
-
-// Default minimal SVG horse (replaceable). Must be a single <g> group for tinting.
-const DefaultHorseSVG = ({ color = '#7c3aed' }) => (
-  <g fill={color} stroke="black" strokeWidth="1" strokeOpacity={0.2}>
-    <circle cx="10" cy="10" r="10" />
-    <rect x="17" y="6" width="12" height="8" rx="2" />
-    <polygon points="5,0 12,4 8,8" />
-  </g>
-)
-
-// ---------- Assets helper ----------
-function loadHorseImages() {
-  try {
-    const ctx = require.context(
-      '../../img/horse_racing/avatars',
-      false,
-      /\.(png|jpe?g|gif|webp)$/
-    )
-    return ctx.keys().map((key) => ({
-      label: key.replace('./', ''),
-      src: ctx(key)
-    }))
-  } catch (e) {
-    return []
-  }
-}
-
-// ---------- Main Component ----------
+/**
+ * HorseRacing Main Component
+ * Orchestrates the horse racing game with race management, animation, and state
+ */
 const HorseRacing = () => {
   // Track & race settings
-  const [lapLengthPx, setLapLengthPx] = useState(1600) // one lap distance in pixels (virtual)
-  const [laps, setLaps] = useState(1)
-  const [raceName, setRaceName] = useState('Birthday Grand Prix')
-  const [countdown, setCountdown] = useState(3)
+  const [lapLengthPx, setLapLengthPx] = useState(DEFAULT_LAP_LENGTH)
+  const [laps, setLaps] = useState(DEFAULT_LAPS)
+  const [raceName] = useState(DEFAULT_RACE_NAME)
+  const [countdown, setCountdown] = useState(DEFAULT_COUNTDOWN)
+
   // Display controls
-  const [arenaHeight, setArenaHeight] = useState(800)
-  const [trackThicknessUi, setTrackThicknessUi] = useState(240)
-  const [spriteScaleDefault, setSpriteScaleDefault] = useState(5)
+  const [arenaHeight, setArenaHeight] = useState(DEFAULT_ARENA_HEIGHT)
+  const [trackThicknessUi, setTrackThicknessUi] = useState(
+    DEFAULT_TRACK_THICKNESS
+  )
+  const [spriteScaleDefault, setSpriteScaleDefault] =
+    useState(DEFAULT_SPRITE_SCALE)
 
-  const images = useMemo(() => loadHorseImages(), [])
-
+  // Initialize horses with saved config or defaults
   const [horses, setHorses] = useState(() => {
-    // Try to load saved config first
     const savedConfig = loadConfig()
     const availableImages = loadHorseImages()
 
     if (savedConfig && savedConfig.length > 0) {
       return savedConfig.map((cfg) => {
-        // Try to match image by filename
         let imgSrc = cfg.imgSrc
         if (cfg.imgFileName) {
           const match = availableImages.find(
@@ -163,35 +76,16 @@ const HorseRacing = () => {
       })
     }
 
-    // Otherwise use default horses
-    let ketiImg
-    let reudoImg
-    try {
-      ketiImg = require('../../img/horse_racing/avatars/keti.png')
-    } catch (e) {}
-    try {
-      reudoImg = require('../../img/horse_racing/avatars/reudo.png')
-    } catch (e) {}
-
-    return [
-      {
-        ...mkHorse('Keti', '#ec4899'),
-        imgSrc: ketiImg,
-        imgFileName: 'keti.png'
-      },
-      {
-        ...mkHorse('Reudo', '#8b5e3c'),
-        imgSrc: reudoImg,
-        imgFileName: 'reudo.png'
-      }
-    ]
+    // Default horses
+    return DEFAULT_HORSES.map((cfg) => ({
+      ...mkHorse(cfg.name, cfg.color),
+      imgSrc: loadAvatarImage(cfg.fileName),
+      imgFileName: cfg.fileName
+    }))
   })
 
-  const [status, setStatus] = useState('idle') // 'idle' | 'countdown' | 'running' | 'finished'
+  const [status, setStatus] = useState(RACE_STATUS.IDLE)
   const [startTime, setStartTime] = useState(null)
-  const [elapsed, setElapsed] = useState(0)
-
-  const arenaRef = useRef(null)
 
   // Derived values
   const totalDistance = lapLengthPx * laps
@@ -199,7 +93,7 @@ const HorseRacing = () => {
 
   // Animation loop
   useEffect(() => {
-    if (status !== 'running') return
+    if (status !== RACE_STATUS.RUNNING) return
 
     let raf = 0
     let last = performance.now()
@@ -209,27 +103,31 @@ const HorseRacing = () => {
       const dt = (now - last) / 1000 // seconds
       last = now
 
-      setElapsed(now - (startTime || now))
-
       setHorses((curr) =>
         curr.map((h) => {
           if (h.finishedAtMs != null) return h
           const rand = lcg(h.rngSeed + Math.floor(h.progress / 20))
 
           // Base + micro-variance noise
-          const noise = (rand() - 0.5) * 2 * h.variance * 20 // up to ~20 px/s variation
+          const noise = (rand() - 0.5) * 2 * h.variance * VARIANCE_MULTIPLIER
 
           // Fatigue grows after stamina seconds
           const t = (now - (startTime || now)) / 1000
-          const fatigue = Math.max(0, (t - h.stamina) * 12) // px/s penalty
+          const fatigue = Math.max(0, (t - h.stamina) * FATIGUE_MULTIPLIER)
 
           // Occasional sprint or stumble events (rare, deterministic)
+          // Only apply random events if variance > 0
           const eventR = rand()
           let eventBoost = 0
-          if (eventR > 0.995) eventBoost = 90 // short sprint
-          else if (eventR < 0.005) eventBoost = -60 // brief stumble
+          if (h.variance > 0) {
+            if (eventR > SPRINT_THRESHOLD) eventBoost = SPRINT_BOOST
+            else if (eventR < STUMBLE_THRESHOLD) eventBoost = STUMBLE_PENALTY
+          }
 
-          const speed = Math.max(10, h.baseSpeed + noise + eventBoost - fatigue) // px/s
+          const speed = Math.max(
+            MIN_SPEED,
+            h.baseSpeed + noise + eventBoost - fatigue
+          )
           const newProgress = h.progress + speed * dt
 
           if (newProgress >= totalDistance) {
@@ -250,25 +148,29 @@ const HorseRacing = () => {
     return () => cancelAnimationFrame(raf)
   }, [status, startTime, totalDistance])
 
+  const go = useCallback(() => {
+    setStartTime(performance.now())
+    setStatus(RACE_STATUS.RUNNING)
+  }, [])
+
   // Countdown timer
   useEffect(() => {
-    if (status !== 'countdown') return
-    setElapsed(0)
+    if (status !== RACE_STATUS.COUNTDOWN) return
     const id = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(id)
           go()
-          return 3
+          return DEFAULT_COUNTDOWN
         }
         return c - 1
       })
     }, 1000)
     return () => clearInterval(id)
-  }, [status])
+  }, [status, go])
 
-  const startCountdown = () => {
-    if (status === 'running') return
+  const startCountdown = useCallback(() => {
+    if (status === RACE_STATUS.RUNNING) return
     // reset race
     setHorses((curr) =>
       curr.map((h) => ({
@@ -278,23 +180,19 @@ const HorseRacing = () => {
         rngSeed: Math.floor(Math.random() * 1e9)
       }))
     )
-    setStatus('countdown')
-  }
+    setStatus(RACE_STATUS.COUNTDOWN)
+  }, [status])
 
-  const go = () => {
-    setStartTime(performance.now())
-    setStatus('running')
-  }
+  const stop = () => setStatus(RACE_STATUS.FINISHED)
 
-  const stop = () => setStatus('finished')
-
+  // Auto-finish race when all horses complete
   useEffect(() => {
     if (
-      status === 'running' &&
+      status === RACE_STATUS.RUNNING &&
       finishedCount === horses.length &&
       horses.length > 0
     ) {
-      setStatus('finished')
+      setStatus(RACE_STATUS.FINISHED)
 
       // Update win statistics
       const winner = horses.reduce((best, h) => {
@@ -321,12 +219,6 @@ const HorseRacing = () => {
     saveConfig(horses)
   }, [horses])
 
-  const sortedResults = useMemo(() => {
-    return [...horses]
-      .filter((h) => h.finishedAtMs != null)
-      .sort((a, b) => a.finishedAtMs - b.finishedAtMs)
-  }, [horses])
-
   // Keyboard shortcuts: Space -> start race, '+' -> add horse, '-' -> remove last
   useEffect(() => {
     const isTypingTarget = (el) => {
@@ -345,19 +237,9 @@ const HorseRacing = () => {
 
       // Space to start (only when idle or finished)
       if (e.code === 'Space' || e.key === ' ') {
-        if (status === 'idle' || status === 'finished') {
+        if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
           e.preventDefault()
-          // Inline startCountdown logic to avoid unstable dependency
-          setHorses((curr) =>
-            curr.map((h) => ({
-              ...h,
-              progress: 0,
-              finishedAtMs: undefined,
-              rngSeed: Math.floor(Math.random() * 1e9)
-            }))
-          )
-
-          setStatus('countdown')
+          startCountdown()
         }
         return
       }
@@ -381,14 +263,22 @@ const HorseRacing = () => {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [status, setHorses, setStatus])
+  }, [status, startCountdown])
+
+  const handleAddHorse = (newHorse) => {
+    setHorses((hs) => [...hs, newHorse])
+  }
+
+  const handleRemoveHorse = (horseId) => {
+    setHorses((hs) => hs.filter((x) => x.id !== horseId))
+  }
 
   return (
     <div className="horse-racing">
       <div className="horse-racing-inner">
         <div className="horse-layout">
           <div className="horse-col-left">
-            <div ref={arenaRef} className="horse-arena">
+            <div className="horse-arena">
               <RaceArena
                 horses={horses}
                 totalDistance={totalDistance}
@@ -403,266 +293,37 @@ const HorseRacing = () => {
             </div>
 
             <div className="horse-panels">
-              <div className="horse-list">
-                <h2>Horses</h2>
-                <div className="horse-list-grid">
-                  {horses.map((h) => (
-                    <div key={h.id} className="horse-row">
-                      <div
-                        className="horse-color"
-                        style={{ background: h.color }}
-                      />
-                      <div className="horse-row-main">
-                        <div className="horse-name">{h.name}</div>
-                        <div className="horse-meta">
-                          Base {Math.round(h.baseSpeed)} · Stamina {h.stamina}s
-                          · Var {(h.variance * 100).toFixed(0)}%
-                        </div>
-                      </div>
-                      <button
-                        className="horse-btn small"
-                        onClick={() =>
-                          setHorses((hs) => hs.filter((x) => x.id !== h.id))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="horse-editor">
-                <h2>Edit Selected Horse</h2>
-                <HorseEditor horses={horses} onChange={setHorses} />
-              </div>
+              <HorseList horses={horses} onRemove={handleRemoveHorse} />
+              <HorseEditor horses={horses} onChange={setHorses} />
             </div>
           </div>
 
           <div className="horse-col-right">
-            <div className="horse-header">
-              <div className="horse-title">
-                <h1>🏇 {raceName}</h1>
-                <p>Run a party race, track lap times, and crown a winner.</p>
-              </div>
-              <div className="horse-actions">
-                {(status === 'idle' || status === 'finished') && (
-                  <button
-                    onClick={startCountdown}
-                    className="horse-btn primary"
-                  >
-                    Start Race
-                  </button>
-                )}
-                {status === 'running' && (
-                  <button onClick={stop} className="horse-btn">
-                    Force Finish
-                  </button>
-                )}
-                <button
-                  className="horse-btn"
-                  onClick={() =>
-                    setHorses((hs) => [
-                      ...hs,
-                      mkHorse(`New Horse ${hs.length + 1}`, randomColor())
-                    ])
-                  }
-                >
-                  + Add Horse
-                </button>
-              </div>
+            <RaceHeader
+              raceName={raceName}
+              status={status}
+              onStartRace={startCountdown}
+              onStopRace={stop}
+              onAddHorse={handleAddHorse}
+              horses={horses}
+              onHorsesChange={setHorses}
+            />
 
-              {/* Config Management */}
-              <div
-                className="horse-actions"
-                style={{
-                  marginTop: '1rem',
-                  paddingTop: '1rem',
-                  borderTop: '1px solid #e5e7eb'
-                }}
-              >
-                <button
-                  className="horse-btn"
-                  onClick={() => {
-                    exportConfig(horses)
-                  }}
-                  title="Export configuration to JSON file"
-                >
-                  💾 Export Config
-                </button>
-                <label
-                  className="horse-btn"
-                  style={{ cursor: 'pointer', margin: 0 }}
-                >
-                  📁 Import Config
-                  <input
-                    type="file"
-                    accept=".json"
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        importConfig(file, (config) => {
-                          const availableImages = loadHorseImages()
-                          const loadedHorses = config.map((cfg) => {
-                            let imgSrc = cfg.imgSrc
-                            if (cfg.imgFileName) {
-                              const match = availableImages.find(
-                                (img) => img.label === cfg.imgFileName
-                              )
-                              if (match) imgSrc = match.src
-                            }
-                            return {
-                              ...cfg,
-                              imgSrc,
-                              progress: 0,
-                              finishedAtMs: null
-                            }
-                          })
-                          setHorses(loadedHorses)
-                        })
-                      }
-                      e.target.value = '' // Reset input
-                    }}
-                  />
-                </label>
-                <button
-                  className="horse-btn"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        'Reset to default horses (Keti & Reudo)? This will clear all stats.'
-                      )
-                    ) {
-                      let ketiImg, reudoImg
-                      try {
-                        ketiImg = require('../../img/horse_racing/avatars/keti.png')
-                      } catch (e) {}
-                      try {
-                        reudoImg = require('../../img/horse_racing/avatars/reudo.png')
-                      } catch (e) {}
-                      setHorses([
-                        {
-                          ...mkHorse('Keti', '#ec4899'),
-                          imgSrc: ketiImg,
-                          imgFileName: 'keti.png'
-                        },
-                        {
-                          ...mkHorse('Reudo', '#8b5e3c'),
-                          imgSrc: reudoImg,
-                          imgFileName: 'reudo.png'
-                        }
-                      ])
-                    }
-                  }}
-                  title="Reset to default configuration"
-                >
-                  🔄 Reset to Default
-                </button>
-              </div>
-            </div>
+            <RaceSettings
+              laps={laps}
+              onLapsChange={setLaps}
+              lapLengthPx={lapLengthPx}
+              onLapLengthChange={setLapLengthPx}
+              status={status}
+              arenaHeight={arenaHeight}
+              onArenaHeightChange={setArenaHeight}
+              trackThickness={trackThicknessUi}
+              onTrackThicknessChange={setTrackThicknessUi}
+              spriteScale={spriteScaleDefault}
+              onSpriteScaleChange={setSpriteScaleDefault}
+            />
 
-            {/* Minimal race settings to control distance (laps and lap length) */}
-            <div className="horse-settings">
-              <div className="settings-card">
-                <h2>Race Settings</h2>
-                <div className="settings-grid">
-                  <label>
-                    <span>Laps</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={laps}
-                      onChange={(e) =>
-                        setLaps(Math.max(1, Number(e.target.value)))
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>Lap length (virtual units)</span>
-                    <input
-                      type="number"
-                      min={100}
-                      step={50}
-                      value={lapLengthPx}
-                      onChange={(e) =>
-                        setLapLengthPx(Math.max(100, Number(e.target.value)))
-                      }
-                    />
-                  </label>
-                  <div className="settings-stats">
-                    <div>Total distance: {lapLengthPx * laps}</div>
-                    <div>Status: {status}</div>
-                  </div>
-                </div>
-              </div>
-              <div className="settings-card">
-                <h2>Display</h2>
-                <div className="settings-grid">
-                  <label>
-                    <span>Arena height</span>
-                    <input
-                      type="range"
-                      min={600}
-                      max={1000}
-                      step={20}
-                      value={arenaHeight}
-                      onChange={(e) => setArenaHeight(Number(e.target.value))}
-                    />
-                  </label>
-                  <label>
-                    <span>Track thickness</span>
-                    <input
-                      type="range"
-                      min={180}
-                      max={300}
-                      step={5}
-                      value={trackThicknessUi}
-                      onChange={(e) =>
-                        setTrackThicknessUi(Number(e.target.value))
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>Horse size</span>
-                    <input
-                      type="range"
-                      min={3}
-                      max={7}
-                      step={0.1}
-                      value={spriteScaleDefault}
-                      onChange={(e) =>
-                        setSpriteScaleDefault(Number(e.target.value))
-                      }
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="horse-results">
-              <h2>Results</h2>
-              {status !== 'finished' && (
-                <p className="hint">
-                  Results appear when all horses finish (or you force finish).
-                </p>
-              )}
-              <ol className="results-list">
-                {sortedResults.map((h, idx) => (
-                  <li key={h.id} className="result-row">
-                    <div className="result-left">
-                      <span className="place">#{idx + 1}</span>
-                      <span className="dot" style={{ background: h.color }} />
-                      <span className="result-name">{h.name}</span>
-                    </div>
-                    <div className="result-time">
-                      {msToClock(h.finishedAtMs)}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <RaceResults horses={horses} status={status} />
 
             <div className="horse-tip">
               Tip: replace the default horse shape with your own SVG path in the
@@ -673,659 +334,6 @@ const HorseRacing = () => {
       </div>
     </div>
   )
-}
-
-// ---------- Arena (track + horses) ----------
-function RaceArena({
-  horses,
-  totalDistance,
-  status,
-  countdown,
-  lapLengthPx,
-  laps,
-  arenaHeight,
-  trackThickness,
-  spriteScaleDefault
-}) {
-  // Landscape SVG viewport
-  const W = 1500
-  const H = arenaHeight || 700
-  const cx = W / 2
-  const cy = H / 2
-
-  // ============================================================================
-  // TRACK SIZING - Inward Expansion Strategy
-  // ============================================================================
-  // When adding horses/lanes:
-  // - Outer track edge stays FIXED at maximum viewport size
-  // - New lanes expand INWARD (filling the center empty space)
-  // - Lane spacing (laneGap) stays consistent
-  // - Each lane has different perimeter (inner = shorter, outer = longer)
-  // - Start offsets ensure all horses travel same distance & finish together
-  // ============================================================================
-
-  const lanes = Math.max(1, horses.length)
-  const edgeMargin = 24
-
-  // Fix the outer radius at maximum (fills viewport)
-  const outerR = Math.max(60, H / 2 - edgeMargin)
-
-  // Compute straight length to fill width
-  const straightLen = Math.max(120, W - 2 * edgeMargin - 2 * outerR)
-
-  // Calculate lane gap based on sprite size
-  const laneGap = Math.max(30, 10 * (spriteScaleDefault || 3))
-
-  // Total track thickness expands inward as we add lanes
-  const trackThicknessVal = laneGap * (lanes + 1)
-
-  // Inner radius shrinks as we add more lanes (expanding inward)
-  const innerR = Math.max(30, outerR - trackThicknessVal)
-
-  // Base midline radius for reference (used for finish line and lap calculations)
-  const baseMidR = (outerR + innerR) / 2
-
-  // Perimeter of an oval with radius R and straight length L
-  const perimeter = (R, L) => 2 * L + 2 * Math.PI * R
-
-  // Midline perimeter (used for distance mapping per lap)
-  const midPerimeter = perimeter(baseMidR, straightLen)
-
-  // Finish line is placed at track center, positioned where Lane 0 finishes
-  // Calculate sFinish based on Lane 0's perimeter (reference for all horses)
-  const lane0R = outerR - laneGap
-  const lane0Perimeter = perimeter(lane0R, straightLen)
-  const sFinishLane0 =
-    ((totalDistance % lane0Perimeter) + lane0Perimeter) % lane0Perimeter
-
-  // Convert this to the equivalent position at trackCenterR for drawing
-  const trackCenterR = (innerR + outerR) / 2
-  const trackCenterPerimeter = perimeter(trackCenterR, straightLen)
-  const sFinish = (sFinishLane0 / lane0Perimeter) * trackCenterPerimeter
-
-  // === Helpers: stadium path + position/heading along the stadium =================
-
-  // Build an SVG path string for a "stadium" (rounded-rectangle) using arcs
-  // R: corner radius, L: straight length
-  function stadiumPath(R, L) {
-    // We start at the top-left tangent point, go clockwise
-    const xL = cx - L / 2
-    const xR = cx + L / 2
-    const yTop = cy - R
-    const yBot = cy + R
-
-    // Move to top-left
-    // Top straight: TL -> TR
-    // Right semicircle: TR -> BR
-    // Bottom straight: BR -> BL
-    // Left semicircle: BL -> TL
-    return [
-      `M ${xL} ${yTop}`,
-      `L ${xR} ${yTop}`,
-      `A ${R} ${R} 0 0 1 ${xR} ${yBot}`,
-      `L ${xL} ${yBot}`,
-      `A ${R} ${R} 0 0 1 ${xL} ${yTop}`,
-      'Z'
-    ].join(' ')
-  }
-
-  // Given distance s along the oval (clockwise) with midline radius R and straight length L,
-  // return { x, y, headingRad } at that param (heading is tangent direction)
-  function poseOnStadium(s, R, L) {
-    const P = perimeter(R, L)
-    let d = ((s % P) + P) % P
-
-    // Segment breakdown (clockwise, starting at middle of top straight going right):
-    // 0) Top straight: length L
-    // 1) Right semicircle (top -> bottom): length πR
-    // 2) Bottom straight (right -> left): length L
-    // 3) Left semicircle (bottom -> top): length πR
-    const seg0 = L
-    const seg1 = L + Math.PI * R
-    const seg2 = L + Math.PI * R + L
-    const seg3 = P
-
-    const xL = cx - L / 2
-    const xR = cx + L / 2
-    const yTop = cy - R
-    const yBot = cy + R
-
-    if (d <= seg0) {
-      // Top straight: left -> right
-      const u = d // [0..L]
-      const x = xL + u
-      const y = yTop
-      const headingRad = 0
-      return { x, y, headingRad }
-    }
-
-    if (d <= seg1) {
-      // Right semicircle, angle φ from -π/2 -> +π/2
-      const u = d - seg0 // [0..πR]
-      const phi = -Math.PI / 2 + u / R
-      const x = xR + R * Math.cos(phi)
-      const y = cy + R * Math.sin(phi)
-      const headingRad = phi + Math.PI / 2
-      return { x, y, headingRad }
-    }
-
-    if (d <= seg2) {
-      // Bottom straight: right -> left
-      const u = d - seg1 // [0..L]
-      const x = xR - u
-      const y = yBot
-      const headingRad = Math.PI
-      return { x, y, headingRad }
-    }
-
-    // Left semicircle, angle φ from +π/2 -> +3π/2
-    const u = d - seg2 // [0..πR]
-    const phi = Math.PI / 2 + u / R
-    const x = xL + R * Math.cos(phi)
-    const y = cy + R * Math.sin(phi)
-    const headingRad = phi + Math.PI / 2
-    return { x, y, headingRad }
-  }
-
-  // NEW: Each lane expands inward from the outer edge
-  // Lane 0 (outermost) is closest to outerR
-  // Lane i has midline at: outerR - (i + 1) * laneGap
-  const laneMidR = (i) => outerR - (i + 1) * laneGap
-
-  // Calculate perimeter for each lane (inner lanes are shorter)
-  const laneMidPerimeter = (i) => perimeter(laneMidR(i), straightLen)
-
-  // For fair racing: calculate start offset so all horses finish at black line together
-  // Strategy:
-  // - The finish line is at angular position: sFinishLane0 / lane0Perimeter (fraction of Lane 0)
-  // - All horses must be at this same angular fraction when progress = totalDistance
-  // - For lane i: (totalDistance + offset) % lanePerim should equal sFinish_scaled
-  //   where sFinish_scaled = (sFinishLane0 / lane0Perimeter) * lanePerim
-  const getStartOffset = (laneIndex) => {
-    const lanePerim = laneMidPerimeter(laneIndex)
-    const lane0Perim = laneMidPerimeter(0)
-
-    // Angular position of finish line (as fraction of lap)
-    const finishAngleFraction = sFinishLane0 / lane0Perim
-
-    // Where this angular position falls on this lane
-    const sFinishOnThisLane = finishAngleFraction * lanePerim
-
-    // We want: (totalDistance + offset) % lanePerim = sFinishOnThisLane
-    // So: offset = sFinishOnThisLane - (totalDistance % lanePerim)
-    const rawOffset = sFinishOnThisLane - (totalDistance % lanePerim)
-
-    // Normalize offset to be positive
-    return ((rawOffset % lanePerim) + lanePerim) % lanePerim
-  }
-
-  // Lap indicator: leader’s lap vs total laps in this race
-  const leaderProgress = Math.max(0, ...horses.map((h) => h.progress))
-  const totalLaps = Math.max(1, Math.ceil(totalDistance / midPerimeter))
-  const currLap = Math.min(
-    totalLaps,
-    Math.floor(leaderProgress / midPerimeter) + 1
-  )
-
-  // Finish line transform: perpendicular to heading at sFinish at track center
-  const finishPose = poseOnStadium(sFinish, trackCenterR, straightLen)
-  const finishRotDeg = (finishPose.headingRad * 180) / Math.PI + 90 // perpendicular to tangent
-
-  return (
-    <div className="arena-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} className="arena-svg">
-        <defs>
-          {/* Grass background gradient (fallback) */}
-          <radialGradient id="grassGradient" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="#e2fbe2" />
-            <stop offset="100%" stopColor="#c0f0c0" />
-          </radialGradient>
-          {/* Track gradient */}
-          <linearGradient id="track" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a8846e" />
-            <stop offset="100%" stopColor="#9B7653" />
-          </linearGradient>
-        </defs>
-
-        {/* Background - use image if available, otherwise gradient */}
-        {grassBg ? (
-          <>
-            <image
-              href={grassBg}
-              x="0"
-              y="0"
-              width={W}
-              height={H}
-              preserveAspectRatio="xMidYMid slice"
-            />
-            {/* Semi-transparent overlay for softer look */}
-            <rect
-              x="0"
-              y="0"
-              width={W}
-              height={H}
-              fill="white"
-              opacity="0.15"
-            />
-          </>
-        ) : (
-          <rect x="0" y="0" width={W} height={H} fill="url(#grassGradient)" />
-        )}
-
-        {/* Track fill (outer minus inner) */}
-        <path d={stadiumPath(outerR, straightLen)} fill="url(#track)" />
-        {grassBg ? (
-          <>
-            <image
-              href={grassBg}
-              x="0"
-              y="0"
-              width={W}
-              height={H}
-              preserveAspectRatio="xMidYMid slice"
-              clipPath="url(#innerClip)"
-            />
-            {/* Semi-transparent overlay for inner area */}
-            <path
-              d={stadiumPath(innerR, straightLen)}
-              fill="brown"
-              opacity="0.15"
-            />
-          </>
-        ) : (
-          <path
-            d={stadiumPath(innerR, straightLen)}
-            fill="url(#grassGradient)"
-          />
-        )}
-
-        {/* Clip path for inner grass area */}
-        <defs>
-          <clipPath id="innerClip">
-            <path d={stadiumPath(innerR, straightLen)} />
-          </clipPath>
-        </defs>
-
-        {/* Lane guides */}
-        {Array.from({ length: lanes }).map((_, i) => (
-          <path
-            key={i}
-            d={stadiumPath(laneMidR(i), straightLen)}
-            fill="none"
-            stroke="#f5f5f5"
-            strokeDasharray="6 8"
-          />
-        ))}
-
-        {/* Start/Finish line, placed where the configured race would end */}
-        {/* Line spans from innerR to outerR, perpendicular to track at finish position */}
-        {/* finishPose is at trackCenterR; center rectangle spans full track width */}
-        <g
-          transform={`translate(${finishPose.x}, ${finishPose.y}) rotate(${finishRotDeg})`}
-        >
-          <rect
-            x={-(outerR - innerR) / 2}
-            y={-3}
-            width={outerR - innerR}
-            height={6}
-            fill="#0f172a"
-          />
-        </g>
-
-        {/* Center lap indicator */}
-        {horses.length > 0 && (
-          <g>
-            <rect
-              x={cx - 22}
-              y={cy - 12}
-              width={44}
-              height={20}
-              rx={10}
-              fill="white"
-              opacity={0.85}
-            />
-            <text
-              x={cx}
-              y={cy + 2}
-              textAnchor="middle"
-              fontSize="12"
-              fontWeight={700}
-              fill="#0f172a"
-            >
-              {currLap}/{totalLaps}
-            </text>
-          </g>
-        )}
-
-        {/* Horses */}
-        {horses.map((h, idx) => {
-          const Rlane = laneMidR(idx)
-          const PL = laneMidPerimeter(idx)
-
-          // Apply start offset for this lane so all horses finish together
-          const startOffset = getStartOffset(idx)
-          const adjustedProgress = h.progress + startOffset
-
-          // Map progress to position on this lane's oval
-          const sLane = ((adjustedProgress % PL) + PL) % PL
-          const p = poseOnStadium(sLane, Rlane, straightLen)
-          const rotDeg = (p.headingRad * 180) / Math.PI
-
-          return (
-            <g
-              key={h.id}
-              transform={`translate(${p.x}, ${p.y}) rotate(${rotDeg})`}
-            >
-              <HorseSprite
-                color={h.color}
-                svgPath={h.svgPath}
-                imgSrc={h.imgSrc}
-                spriteScale={h.spriteScale ?? spriteScaleDefault}
-              />
-              {/* Name tag behind the horse, rotated with the sprite */}
-              <g transform={`translate(-70, -10)`} pointerEvents="none">
-                <text
-                  x={20}
-                  y={3}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#0f172a"
-                  fontWeight={600}
-                >
-                  {h.name}
-                </text>
-              </g>
-            </g>
-          )
-        })}
-
-        {/* Big countdown overlay */}
-        {status === 'countdown' && (
-          <g>
-            <rect x={0} y={0} width={W} height={H} fill="rgba(0,0,0,0.2)" />
-            <text
-              x={cx}
-              y={cy}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="200"
-              fontWeight={800}
-              fill="white"
-            >
-              {countdown}
-            </text>
-          </g>
-        )}
-      </svg>
-    </div>
-  )
-}
-
-function HorseSprite({ color, svgPath, imgSrc, spriteScale = 5 }) {
-  return (
-    <g>
-      <g transform="translate(-16, -12)">
-        {imgSrc ? (
-          (() => {
-            const baseW = 32
-            const baseH = 24
-            const w = baseW * spriteScale
-            const h = baseH * spriteScale
-            const x = -16 - (w - baseW) / 2
-            const y = -12 - (h - baseH) / 2
-            return (
-              <image
-                href={imgSrc}
-                x={x}
-                y={y}
-                width={w}
-                height={h}
-                preserveAspectRatio="xMidYMid meet"
-              />
-            )
-          })()
-        ) : svgPath ? (
-          <path d={svgPath} fill={color} stroke="black" strokeWidth={0.5} />
-        ) : (
-          <DefaultHorseSVG color={color} />
-        )}
-      </g>
-    </g>
-  )
-}
-
-// ---------- Horse Editor ----------
-function HorseEditor({ horses, onChange }) {
-  const [selectedId, setSelectedId] = useState(horses[0]?.id ?? '')
-  const images = useMemo(() => loadHorseImages(), [])
-
-  useEffect(() => {
-    if (!horses.find((h) => h.id === selectedId) && horses[0])
-      setSelectedId(horses[0].id)
-  }, [horses, selectedId])
-
-  const sel = horses.find((h) => h.id === selectedId)
-  if (!sel) return <p className="hint">Add a horse to edit it.</p>
-
-  const update = (partial) => {
-    onChange(horses.map((h) => (h.id === sel.id ? { ...h, ...partial } : h)))
-  }
-
-  return (
-    <div className="editor-grid">
-      <div className="editor-row">
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
-          {horses.map((h) => (
-            <option key={h.id} value={h.id}>
-              {h.name}
-            </option>
-          ))}
-        </select>
-        <input
-          value={sel.name}
-          onChange={(e) => update({ name: e.target.value })}
-        />
-        <input
-          type="color"
-          className="color-input"
-          value={sel.color}
-          onChange={(e) => update({ color: e.target.value })}
-        />
-      </div>
-      <div className="editor-row">
-        <label className="editor-label">Sprite Image</label>
-        <select
-          value={sel.imgFileName || ''}
-          onChange={(e) => {
-            const fileName = e.target.value
-            if (!fileName) {
-              update({ imgSrc: undefined, imgFileName: undefined })
-            } else {
-              const img = images.find((i) => i.label === fileName)
-              update({ imgSrc: img?.src, imgFileName: fileName })
-            }
-          }}
-        >
-          <option value="">Default SVG</option>
-          {images.map((img) => (
-            <option key={img.label} value={img.label}>
-              {img.label}
-            </option>
-          ))}
-        </select>
-        {sel.imgSrc ? (
-          <img src={sel.imgSrc} alt="preview" className="img-preview" />
-        ) : null}
-      </div>
-      <label className="slider">
-        Base Speed
-        <input
-          type="range"
-          min={60}
-          max={160}
-          value={sel.baseSpeed}
-          onChange={(e) => update({ baseSpeed: Number(e.target.value) })}
-        />
-      </label>
-      <label className="slider">
-        Sprite Size
-        <input
-          type="range"
-          min={2}
-          max={6}
-          step={0.1}
-          value={sel.spriteScale ?? 4}
-          onChange={(e) => update({ spriteScale: Number(e.target.value) })}
-        />
-      </label>
-      <label className="slider">
-        Stamina (s)
-        <input
-          type="range"
-          min={5}
-          max={40}
-          value={sel.stamina}
-          onChange={(e) => update({ stamina: Number(e.target.value) })}
-        />
-      </label>
-      <label className="slider">
-        Variance
-        <input
-          type="range"
-          min={0}
-          max={0.6}
-          step={0.02}
-          value={sel.variance}
-          onChange={(e) => update({ variance: Number(e.target.value) })}
-        />
-      </label>
-      <button
-        className="horse-btn small align-right"
-        onClick={() => update({ svgPath: undefined })}
-      >
-        Reset SVG
-      </button>
-
-      <div className="editor-advanced">
-        <label className="editor-label">Custom SVG Path (advanced)</label>
-        <textarea
-          className="editor-textarea"
-          placeholder="Paste an SVG path 'd' attribute here to override the default horse shape"
-          value={sel.svgPath || ''}
-          onChange={(e) => update({ svgPath: e.target.value })}
-        />
-        <p className="hint">
-          Tip: Use a simple silhouette path. Complex paths work, too. The sprite
-          is auto-tinted.
-        </p>
-      </div>
-
-      {/* Statistics Section */}
-      {(sel.races || 0) > 0 && (
-        <div
-          className="editor-stats"
-          style={{
-            marginTop: '1rem',
-            padding: '1rem',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px'
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 0.5rem 0',
-              fontSize: '0.9rem',
-              color: '#6b7280'
-            }}
-          >
-            📊 Race Statistics
-          </h3>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '0.5rem',
-              fontSize: '0.85rem'
-            }}
-          >
-            <div>
-              <strong>Races:</strong> {sel.races || 0}
-            </div>
-            <div>
-              <strong>Wins:</strong> {sel.wins || 0}
-            </div>
-            <div>
-              <strong>Win Rate:</strong>{' '}
-              {(((sel.wins || 0) / (sel.races || 1)) * 100).toFixed(1)}%
-            </div>
-            <div>
-              <strong>Avg Time:</strong>{' '}
-              {sel.races > 0
-                ? msToClock((sel.totalTime || 0) / sel.races)
-                : 'N/A'}
-            </div>
-          </div>
-          <button
-            className="horse-btn small"
-            style={{ marginTop: '0.5rem', width: '100%' }}
-            onClick={() => {
-              if (window.confirm(`Reset statistics for ${sel.name}?`)) {
-                update({ wins: 0, races: 0, totalTime: 0 })
-              }
-            }}
-          >
-            🗑️ Reset Stats
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ---------- Helpers ----------
-function mkId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-}
-
-function mkHorse(name, color) {
-  const id = mkId()
-  return {
-    id,
-    name,
-    color,
-    imgSrc: undefined,
-    imgFileName: undefined,
-    spriteScale: 4,
-    baseSpeed: 100 + Math.random() * 40,
-    stamina: 12 + Math.random() * 12,
-    variance: 0.18 + Math.random() * 0.12,
-    progress: 0,
-    rngSeed: Math.floor(Math.random() * 1e9),
-    // Stats
-    wins: 0,
-    races: 0,
-    totalTime: 0
-  }
-}
-
-function randomColor() {
-  const palette = [
-    '#ef4444',
-    '#f97316',
-    '#f59e0b',
-    '#84cc16',
-    '#10b981',
-    '#06b6d4',
-    '#3b82f6',
-    '#6366f1',
-    '#8b5cf6',
-    '#ec4899',
-    '#f43f5e'
-  ]
-  return palette[Math.floor(Math.random() * palette.length)]
 }
 
 export default HorseRacing
