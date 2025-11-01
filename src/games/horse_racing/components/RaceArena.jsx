@@ -406,7 +406,7 @@ function RaceArena({
         </g>
 
         {/* Center lap indicator */}
-        {horses.length > 0 && (
+        {horses.length > 0 && !horses.some((h) => h.finishedAtMs) && (
           <g>
             <rect
               x={cx - 22}
@@ -429,6 +429,67 @@ function RaceArena({
             </text>
           </g>
         )}
+
+        {/* Winner display - shown as soon as first horse finishes */}
+        {horses.length > 0 &&
+          (() => {
+            // Find the winner (first horse to finish - lowest finishedAtMs)
+            const winner = horses.reduce((best, h) => {
+              if (!h.finishedAtMs) return best
+              if (!best || h.finishedAtMs < best.finishedAtMs) return h
+              return best
+            }, null)
+
+            if (!winner) return null
+
+            // Format time: convert milliseconds to seconds with 2 decimal places
+            const timeInSeconds = (winner.finishedAtMs / 1000).toFixed(2)
+
+            return (
+              <g>
+                {/* Background pill for winner */}
+                <rect
+                  x={cx - 130}
+                  y={cy - 28}
+                  width={260}
+                  height={56}
+                  rx={28}
+                  fill="white"
+                  opacity={0.95}
+                />
+                <rect
+                  x={cx - 124}
+                  y={cy - 22}
+                  width={248}
+                  height={44}
+                  rx={22}
+                  fill={winner.color}
+                  opacity={0.3}
+                />
+                {/* Winner text */}
+                <text
+                  x={cx}
+                  y={cy - 2}
+                  textAnchor="middle"
+                  fontSize="14"
+                  fontWeight={600}
+                  fill="#475569"
+                >
+                  🏆 Winner
+                </text>
+                <text
+                  x={cx}
+                  y={cy + 18}
+                  textAnchor="middle"
+                  fontSize="22"
+                  fontWeight={800}
+                  fill={winner.color}
+                >
+                  {winner.name}: {timeInSeconds}s
+                </text>
+              </g>
+            )
+          })()}
 
         {/* Horses */}
         {horses.map((h, idx) => {
