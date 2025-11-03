@@ -1,53 +1,81 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './HorseIntroduction.css'
 import introStatsBg from '../../../img/horse_racing/background/intro_stats.png'
-import { INTRO_DURATION_PER_HORSE } from '../constants'
 
 /**
  * HorseIntroduction Component
  * WWE/Boxing style pre-race introduction for each horse
  * Shows horse image, name, and stats with dramatic animations
+ * Manual navigation with arrow keys - cards stay until user navigates
  *
  * @param {Array} horses - Array of horses to introduce
  * @param {number} currentIndex - Index of current horse being introduced
  * @param {boolean} allComplete - Whether all introductions are complete
- * @param {Function} onComplete - Callback when all intros are done
+ * @param {string} navDirection - Direction of navigation ('right' or 'left')
  */
-function HorseIntroduction({ horses, currentIndex, allComplete }) {
-  const [animationPhase, setAnimationPhase] = useState('entering') // entering, center, exiting
-  const [direction, setDirection] = useState('left') // left, right, top, bottom
+function HorseIntroduction({
+  horses,
+  currentIndex,
+  allComplete,
+  navDirection
+}) {
+  const [animationPhase, setAnimationPhase] = useState('entering-right') // entering-right, entering-left, center, exiting-left, exiting-right
+  const [displayedIndex, setDisplayedIndex] = useState(currentIndex) // Which horse is currently shown on screen
+  const prevIndexRef = useRef(currentIndex)
 
-  const horse = horses[currentIndex]
+  const horse = horses[displayedIndex] // Use displayedIndex instead of currentIndex
 
-  // Set random direction when horse changes
+  // Handle index changes - trigger exit animation before new card enters
   useEffect(() => {
-    if (!horse) return
-    const directions = ['left', 'right', 'top', 'bottom']
-    const randomDir = directions[Math.floor(Math.random() * directions.length)]
-    setDirection(randomDir)
-    setAnimationPhase('entering')
+    const prevIndex = prevIndexRef.current
 
-    // Calculate phase timings based on INTRO_DURATION_PER_HORSE
-    // Entry: 20% of total time
-    // Center: 60% of total time (most important - showing stats)
-    // Exit: 20% of total time
-    const enterDuration = INTRO_DURATION_PER_HORSE * 0.2
-    const exitStartTime = INTRO_DURATION_PER_HORSE * 0.8
+    // If index changed (user navigated)
+    if (prevIndex !== currentIndex) {
+      // Keep showing the old horse during exit animation
+      setDisplayedIndex(prevIndex)
 
-    // Phase timing
-    const enterTimer = setTimeout(() => {
-      setAnimationPhase('center')
-    }, enterDuration)
+      // Determine exit and enter directions based on navigation
+      if (currentIndex > prevIndex) {
+        // Moving forward (right arrow pressed) - exit to left, enter from right
+        setAnimationPhase('exiting-left')
+      } else {
+        // Moving backward (left arrow pressed) - exit to right, enter from left
+        setAnimationPhase('exiting-right')
+      }
 
-    const exitTimer = setTimeout(() => {
-      setAnimationPhase('exiting')
-    }, exitStartTime)
+      // After exit animation, switch to new horse and enter
+      const exitTimer = setTimeout(() => {
+        // Now show the new horse
+        setDisplayedIndex(currentIndex)
 
-    return () => {
-      clearTimeout(enterTimer)
-      clearTimeout(exitTimer)
+        // Enter from opposite direction
+        if (currentIndex > prevIndex) {
+          setAnimationPhase('entering-right') // Coming from right
+        } else {
+          setAnimationPhase('entering-left') // Coming from left
+        }
+        prevIndexRef.current = currentIndex
+
+        // After enter animation, go to center (stay there)
+        const enterTimer = setTimeout(() => {
+          setAnimationPhase('center')
+        }, 600) // Match enter animation duration
+
+        return () => clearTimeout(enterTimer)
+      }, 600) // Match exit animation duration
+
+      return () => clearTimeout(exitTimer)
+    } else if (displayedIndex !== currentIndex) {
+      // Handle initial mount or reset
+      setDisplayedIndex(currentIndex)
+      setAnimationPhase('entering-right')
+      const enterTimer = setTimeout(() => {
+        setAnimationPhase('center')
+      }, 600) // Match enter animation duration
+
+      return () => clearTimeout(enterTimer)
     }
-  }, [currentIndex, horse])
+  }, [currentIndex, displayedIndex])
 
   // Calculate stats (with safety check)
   const winRate = horse
@@ -64,7 +92,7 @@ function HorseIntroduction({ horses, currentIndex, allComplete }) {
   return (
     <div className="horse-intro-overlay">
       <div
-        className={`horse-intro-card ${animationPhase} from-${direction}`}
+        className={`horse-intro-card ${animationPhase}`}
         style={{
           '--horse-color': horse.color,
           backgroundImage: `url(${introStatsBg})`

@@ -39,21 +39,13 @@
   overflow: hidden;
 }
 
-/* Entering animations from different directions */
-.horse-intro-card.entering.from-left {
-  animation: flyInFromLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+/* Entering animations */
+.horse-intro-card.entering-right {
+  animation: slideInFromRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.horse-intro-card.entering.from-right {
-  animation: flyInFromRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.horse-intro-card.entering.from-top {
-  animation: flyInFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.horse-intro-card.entering.from-bottom {
-  animation: flyInFromBottom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.horse-intro-card.entering-left {
+  animation: slideInFromLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Center phase - subtle breathing animation */
@@ -61,55 +53,65 @@
   animation: breathe 2s ease-in-out infinite;
 }
 
-/* Exiting animation - shrink and fade */
-.horse-intro-card.exiting {
-  animation: flyOut 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+/* Exiting animations */
+.horse-intro-card.exiting-left {
+  animation: slideOutToLeft 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
 }
 
-@keyframes flyInFromLeft {
+.horse-intro-card.exiting-right {
+  animation: slideOutToRight 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19)
+    forwards;
+}
+
+/* Slide in from right (forward navigation) */
+@keyframes slideInFromRight {
   from {
-    transform: translateX(-150%) rotate(-15deg) scale(0.5);
+    transform: translateX(120%);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotate(0deg) scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
-@keyframes flyInFromRight {
+/* Slide in from left (backward navigation) */
+@keyframes slideInFromLeft {
   from {
-    transform: translateX(150%) rotate(15deg) scale(0.5);
+    transform: translateX(-120%);
     opacity: 0;
   }
   to {
-    transform: translateX(0) rotate(0deg) scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
-@keyframes flyInFromTop {
+/* Slide out to left (when going forward) */
+@keyframes slideOutToLeft {
   from {
-    transform: translateY(-150%) rotate(-10deg) scale(0.5);
-    opacity: 0;
+    transform: translateX(0);
+    opacity: 1;
   }
   to {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 1;
+    transform: translateX(-120%);
+    opacity: 0;
   }
 }
 
-@keyframes flyInFromBottom {
+/* Slide out to right (when going backward) */
+@keyframes slideOutToRight {
   from {
-    transform: translateY(150%) rotate(10deg) scale(0.5);
-    opacity: 0;
+    transform: translateX(0);
+    opacity: 1;
   }
   to {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 1;
+    transform: translateX(120%);
+    opacity: 0;
   }
 }
 
+/* Subtle breathing animation when at center */
 @keyframes breathe {
   0%,
   100% {
@@ -117,17 +119,6 @@
   }
   50% {
     transform: scale(1.02);
-  }
-}
-
-@keyframes flyOut {
-  from {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.3) translateY(-100px);
-    opacity: 0;
   }
 }
 

@@ -31,6 +31,7 @@ const grassBg = loadGrassBackground()
  * @param {number} startTime - Race start timestamp for live time calculation
  * @param {number} introductionIndex - Current horse being introduced
  * @param {boolean} introductionComplete - Whether all introductions are complete
+ * @param {string} introNavDirection - Direction of navigation ('right' or 'left')
  */
 function RaceArena({
   horses,
@@ -44,7 +45,8 @@ function RaceArena({
   spriteScaleDefault,
   startTime,
   introductionIndex,
-  introductionComplete
+  introductionComplete,
+  introNavDirection
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -694,6 +696,7 @@ function RaceArena({
           horses={horses}
           currentIndex={introductionIndex}
           allComplete={introductionComplete}
+          navDirection={introNavDirection}
         />
       )}
     </div>

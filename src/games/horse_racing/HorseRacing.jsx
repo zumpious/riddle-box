@@ -35,7 +35,6 @@ import {
   DEFAULT_SPRITE_SCALE,
   DEFAULT_HORSES,
   RACE_STATUS,
-  INTRO_DURATION_PER_HORSE,
   VARIANCE_MULTIPLIER,
   MIN_SPEED,
   SPRINT_THRESHOLD,
@@ -124,6 +123,7 @@ const HorseRacing = () => {
   // Introduction state
   const [introductionIndex, setIntroductionIndex] = useState(0)
   const [introductionComplete, setIntroductionComplete] = useState(false)
+  const [introNavDirection, setIntroNavDirection] = useState('right') // 'right' or 'left'
 
   // Audio refs
   const raceStartAudioRef = useRef(null)
@@ -307,7 +307,7 @@ const HorseRacing = () => {
     setStatus(RACE_STATUS.RUNNING)
   }, [])
 
-  // Introduction sequence - cycle through horses
+  // Introduction sequence - manual navigation with arrow keys (no auto-advance)
   useEffect(() => {
     if (status !== RACE_STATUS.INTRODUCTION) return
     if (horses.length === 0) return
@@ -318,12 +318,7 @@ const HorseRacing = () => {
       return
     }
 
-    // Cycle to next horse after INTRO_DURATION_PER_HORSE
-    const timer = setTimeout(() => {
-      setIntroductionIndex((prev) => prev + 1)
-    }, INTRO_DURATION_PER_HORSE)
-
-    return () => clearTimeout(timer)
+    // No automatic timer - user controls with arrow keys
   }, [status, introductionIndex, horses.length])
 
   // Countdown timer
@@ -600,6 +595,37 @@ const HorseRacing = () => {
         return
       }
 
+      // Arrow keys to navigate through introduction
+      if (status === RACE_STATUS.INTRODUCTION) {
+        // Right arrow - go to next horse
+        if (e.key === 'ArrowRight') {
+          e.preventDefault()
+          setIntroNavDirection('right')
+          setIntroductionIndex((prev) => {
+            const nextIndex = prev + 1
+            // Allow going to horses.length to mark introduction as complete
+            return Math.min(nextIndex, horses.length)
+          })
+          return
+        }
+
+        // Left arrow - go to previous horse
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault()
+          setIntroNavDirection('left')
+          setIntroductionIndex((prev) => {
+            const prevIndex = prev - 1
+            // Don't go below 0
+            return Math.max(prevIndex, 0)
+          })
+          // If going back, unmark introduction as complete
+          if (introductionComplete) {
+            setIntroductionComplete(false)
+          }
+          return
+        }
+      }
+
       // Space to start countdown
       if (e.code === 'Space' || e.key === ' ') {
         // After introduction is complete, start countdown
@@ -647,7 +673,8 @@ const HorseRacing = () => {
     startCountdown,
     startIntroduction,
     characterRoster,
-    introductionComplete
+    introductionComplete,
+    horses.length
   ])
 
   const handleAddHorse = (newHorse) => {
@@ -680,6 +707,7 @@ const HorseRacing = () => {
                 startTime={startTime}
                 introductionIndex={introductionIndex}
                 introductionComplete={introductionComplete}
+                introNavDirection={introNavDirection}
               />
             </div>
 
@@ -748,10 +776,10 @@ const HorseRacing = () => {
 
             <div className="horse-tip">
               💡 Tip: Press <strong>F</strong> for fullscreen · Press{' '}
-              <strong>I</strong> to start/restart intro (then{' '}
-              <strong>Space</strong> to race) · Press <strong>Space</strong> to
-              start race directly · <strong>+</strong>/<strong>-</strong> to
-              add/remove horses
+              <strong>I</strong> to start intro (use <strong>←/→</strong> arrows
+              to navigate, then <strong>Space</strong> to race) · Press{' '}
+              <strong>Space</strong> to start race directly · <strong>+</strong>
+              /<strong>-</strong> to add/remove horses
             </div>
           </div>
         </div>
