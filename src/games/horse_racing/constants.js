@@ -5,7 +5,7 @@
 
 // Default race settings
 export const DEFAULT_LAP_LENGTH = 1600 // pixels (virtual units)
-export const DEFAULT_LAPS = 1
+export const DEFAULT_LAPS = 3
 export const DEFAULT_RACE_NAME = 'Birthday Grand Prix'
 export const DEFAULT_COUNTDOWN = 3 // seconds
 
