@@ -85,3 +85,122 @@
 .arena-wrap:fullscreen .fullscreen-btn svg {
   color: #ffffff;
 }
+
+/* Sweat drop animations - slower with variance */
+
+/* Left drop animations - 3 variants for randomness */
+@keyframes sweatDropFallLeft1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-18px, 70px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallLeft2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-22px, 75px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallLeft3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-15px, 68px);
+    opacity: 0;
+  }
+}
+
+/* Right drop animations - 3 variants for randomness */
+@keyframes sweatDropFallRight1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(18px, 70px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallRight2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(22px, 75px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallRight3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(15px, 68px);
+    opacity: 0;
+  }
+}
+
+.sweat-drop {
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+/* Left variants - slower (1.8-2.2s) */
+.sweat-drop-left-1 {
+  animation: sweatDropFallLeft1 1.8s infinite;
+}
+
+.sweat-drop-left-2 {
+  animation: sweatDropFallLeft2 2s infinite;
+}
+
+.sweat-drop-left-3 {
+  animation: sweatDropFallLeft3 2.2s infinite;
+}
+
+/* Right variants - slower (1.8-2.2s) */
+.sweat-drop-right-1 {
+  animation: sweatDropFallRight1 1.8s infinite;
+}
+
+.sweat-drop-right-2 {
+  animation: sweatDropFallRight2 2s infinite;
+}
+
+.sweat-drop-right-3 {
+  animation: sweatDropFallRight3 2.2s infinite;
+}

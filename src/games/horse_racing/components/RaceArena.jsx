@@ -10,6 +10,7 @@ import {
 } from '../constants'
 import './RaceArena.css'
 import finishLineImg from '../../../img/horse_racing/background/finish_line.png'
+import sweatDropImg from '../../../img/horse_racing/background/sweat.png'
 
 // Try to load background image, fallback to undefined
 const grassBg = loadGrassBackground()
@@ -626,6 +627,44 @@ function RaceArena({
                   {h.name}
                 </text>
               </g>
+
+              {/* Sweat drops when recovering */}
+              {h.recovering &&
+                (() => {
+                  // Add randomness to animation - use horse ID to deterministically vary the animation
+                  const seed = h.id
+                    .split('')
+                    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+                  const animVariant = (seed % 3) + 1 // Random variant 1, 2, or 3
+                  const delayOffset = (seed % 5) * 0.1 // Random delay 0-0.4s
+
+                  return (
+                    <g className="sweat-drops">
+                      {/* Left sweat drop */}
+                      <image
+                        href={sweatDropImg}
+                        className={`sweat-drop sweat-drop-left-${animVariant}`}
+                        x={-25}
+                        y={-50}
+                        width={18}
+                        height={18}
+                        opacity={0.85}
+                        style={{ animationDelay: `${delayOffset}s` }}
+                      />
+                      {/* Right sweat drop */}
+                      <image
+                        href={sweatDropImg}
+                        className={`sweat-drop sweat-drop-right-${animVariant}`}
+                        x={15}
+                        y={-50}
+                        width={18}
+                        height={18}
+                        opacity={0.85}
+                        style={{ animationDelay: `${delayOffset + 0.6}s` }}
+                      />
+                    </g>
+                  )
+                })()}
             </g>
           )
         })}
