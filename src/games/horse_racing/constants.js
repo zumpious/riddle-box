@@ -24,12 +24,18 @@ export const LANE_GAP_MULTIPLIER = 10
 
 // Race mechanics
 export const VARIANCE_MULTIPLIER = 20 // px/s
-export const FATIGUE_MULTIPLIER = 12 // px/s penalty
 export const MIN_SPEED = 10 // px/s
 export const SPRINT_THRESHOLD = 0.995 // probability threshold for sprint
 export const STUMBLE_THRESHOLD = 0.005 // probability threshold for stumble
 export const SPRINT_BOOST = 90 // px/s
 export const STUMBLE_PENALTY = -60 // px/s
+
+// Endurance system (replaces old fatigue system)
+export const MAX_ENDURANCE = 100 // Maximum endurance points
+export const ENDURANCE_RECOVERY_RATE = 50 // Endurance points gained per second during recovery
+export const RECOVERY_SPEED_MULTIPLIER = 0.35 // Speed multiplier during recovery (35% of normal speed)
+// Note: Depletion rate is calculated dynamically as MAX_ENDURANCE / stamina
+// This means a horse with stamina=20 will deplete in ~20 seconds
 
 // Default horse configurations
 export const DEFAULT_HORSES = [

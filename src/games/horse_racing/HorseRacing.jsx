@@ -37,12 +37,14 @@ import {
   RACE_STATUS,
   INTRO_DURATION_PER_HORSE,
   VARIANCE_MULTIPLIER,
-  FATIGUE_MULTIPLIER,
   MIN_SPEED,
   SPRINT_THRESHOLD,
   STUMBLE_THRESHOLD,
   SPRINT_BOOST,
-  STUMBLE_PENALTY
+  STUMBLE_PENALTY,
+  MAX_ENDURANCE,
+  ENDURANCE_RECOVERY_RATE,
+  RECOVERY_SPEED_MULTIPLIER
 } from './constants'
 
 /**
@@ -109,7 +111,9 @@ const HorseRacing = () => {
       .map((c) => ({
         ...c,
         progress: 0,
-        finishedAtMs: null
+        finishedAtMs: null,
+        endurance: MAX_ENDURANCE,
+        recovering: false
       }))
   })
 
@@ -220,12 +224,39 @@ const HorseRacing = () => {
           if (h.finishedAtMs != null) return h
           const rand = lcg(h.rngSeed + Math.floor(h.progress / 20))
 
+          // Initialize endurance if not set
+          let currentEndurance = h.endurance ?? MAX_ENDURANCE
+          let isRecovering = h.recovering ?? false
+
+          // Update endurance
+          if (isRecovering) {
+            // Recovering: regenerate endurance
+            currentEndurance = Math.min(
+              MAX_ENDURANCE,
+              currentEndurance + ENDURANCE_RECOVERY_RATE * dt
+            )
+            // Exit recovery when fully restored
+            if (currentEndurance >= MAX_ENDURANCE) {
+              isRecovering = false
+              currentEndurance = MAX_ENDURANCE
+            }
+          } else {
+            // Running normally: deplete endurance based on stamina
+            // Higher stamina = slower depletion (endurance lasts approximately h.stamina seconds)
+            const depletionRate = MAX_ENDURANCE / h.stamina
+            currentEndurance = Math.max(
+              0,
+              currentEndurance - depletionRate * dt
+            )
+            // Enter recovery when depleted
+            if (currentEndurance <= 0) {
+              isRecovering = true
+              currentEndurance = 0
+            }
+          }
+
           // Base + micro-variance noise
           const noise = (rand() - 0.5) * 2 * h.variance * VARIANCE_MULTIPLIER
-
-          // Fatigue grows after stamina seconds
-          const t = (now - (startTime || now)) / 1000
-          const fatigue = Math.max(0, (t - h.stamina) * FATIGUE_MULTIPLIER)
 
           // Occasional sprint or stumble events (rare, deterministic)
           // Only apply random events if variance > 0
@@ -236,20 +267,31 @@ const HorseRacing = () => {
             else if (eventR < STUMBLE_THRESHOLD) eventBoost = STUMBLE_PENALTY
           }
 
-          const speed = Math.max(
-            MIN_SPEED,
-            h.baseSpeed + noise + eventBoost - fatigue
-          )
+          // Calculate base speed
+          let speed = Math.max(MIN_SPEED, h.baseSpeed + noise + eventBoost)
+
+          // Apply recovery penalty if recovering
+          if (isRecovering) {
+            speed = speed * RECOVERY_SPEED_MULTIPLIER
+          }
+
           const newProgress = h.progress + speed * dt
 
           if (newProgress >= totalDistance) {
             return {
               ...h,
               progress: totalDistance,
-              finishedAtMs: now - (startTime || now)
+              finishedAtMs: now - (startTime || now),
+              endurance: currentEndurance,
+              recovering: isRecovering
             }
           }
-          return { ...h, progress: newProgress }
+          return {
+            ...h,
+            progress: newProgress,
+            endurance: currentEndurance,
+            recovering: isRecovering
+          }
         })
       )
 
@@ -312,7 +354,9 @@ const HorseRacing = () => {
         ...c,
         progress: 0,
         finishedAtMs: undefined,
-        rngSeed: Math.floor(Math.random() * 1e9)
+        rngSeed: Math.floor(Math.random() * 1e9),
+        endurance: MAX_ENDURANCE,
+        recovering: false
       }))
     setHorses(selectedHorses)
 
@@ -368,7 +412,9 @@ const HorseRacing = () => {
           ...c,
           progress: 0,
           finishedAtMs: undefined,
-          rngSeed: Math.floor(Math.random() * 1e9)
+          rngSeed: Math.floor(Math.random() * 1e9),
+          endurance: MAX_ENDURANCE,
+          recovering: false
         }))
       setHorses(selectedHorses)
     }
@@ -481,7 +527,9 @@ const HorseRacing = () => {
           .map((c) => ({
             ...c,
             progress: 0,
-            finishedAtMs: null
+            finishedAtMs: null,
+            endurance: MAX_ENDURANCE,
+            recovering: false
           }))
         setHorses(updatedHorses)
       }
