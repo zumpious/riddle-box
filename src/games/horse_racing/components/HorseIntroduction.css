@@ -124,8 +124,8 @@
 
 /* Horse Image */
 .intro-horse-image {
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
   margin: 0 auto 2rem;
   border-radius: 50%;
   overflow: visible; /* Changed to allow number badge to overflow */
@@ -206,9 +206,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  padding: 1rem 2rem;
-  margin: 0 auto 2rem;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  margin: 0 auto 1.5rem;
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   animation: slideInName 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
@@ -216,14 +216,14 @@
 
 .intro-name-stars {
   color: #fbbf24;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: bold;
   text-shadow: 0 2px 10px rgba(251, 191, 36, 0.5);
 }
 
 .intro-name-text {
   color: #ffffff;
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: 2px;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -244,7 +244,7 @@
 .intro-stats {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
@@ -252,8 +252,8 @@
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 1rem 1.5rem;
-  min-width: 120px;
+  padding: 0.75rem 1.25rem;
+  min-width: 100px;
   animation: popInStat 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
 }
 
@@ -281,13 +281,13 @@
 }
 
 .intro-stat-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .intro-stat-label {
   color: #94a3b8;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -296,7 +296,7 @@
 
 .intro-stat-value {
   color: #ffffff;
-  font-size: 1.75rem;
+  font-size: 1.3rem;
   font-weight: 800;
   text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 }
@@ -391,13 +391,17 @@
   }
 
   .intro-horse-image {
-    width: 150px;
-    height: 150px;
+    width: 220px;
+    height: 220px;
     /* Maintain flexbox centering on mobile */
   }
 
   .intro-name-text {
-    font-size: 1.75rem;
+    font-size: 1.4rem;
+  }
+
+  .intro-name-stars {
+    font-size: 1rem;
   }
 
   .intro-stats {
