@@ -204,3 +204,18 @@
 .sweat-drop-right-3 {
   animation: sweatDropFallRight3 2.2s infinite;
 }
+
+/* Dust cloud animations - now handled by SVG SMIL animations */
+/* The dust emitter is a self-contained SVG with built-in animations */
+/* No CSS animations needed! 🎉 */
+
+/* Respect reduced-motion preference for dust animations */
+@media (prefers-reduced-motion: reduce) {
+  .dust-anim > * {
+    animation: none !important;
+  }
+  /* Hide dust entirely if user prefers reduced motion */
+  .dust-clouds {
+    display: none;
+  }
+}

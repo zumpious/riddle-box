@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import HorseSprite from './HorseSprite'
 import HorseIntroduction from './HorseIntroduction'
+import DustCloud, { DustCloudDefs } from './DustCloud'
 import { loadGrassBackground } from '../utils/assetLoader'
 import {
   ARENA_WIDTH,
@@ -357,6 +358,9 @@ function RaceArena({
             <stop offset="0%" stopColor="#a8846e" />
             <stop offset="100%" stopColor="#9B7653" />
           </linearGradient>
+
+          {/* Dust cloud animation definitions */}
+          <DustCloudDefs />
         </defs>
 
         {/* Background - use image if available, otherwise gradient */}
@@ -704,6 +708,9 @@ function RaceArena({
                     </g>
                   )
                 })()}
+
+              {/* Dust clouds when running/accelerating */}
+              <DustCloud visible={h.showingDust} />
             </g>
           )
         })}

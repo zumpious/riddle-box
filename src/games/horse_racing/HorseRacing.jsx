@@ -123,7 +123,9 @@ const HorseRacing = () => {
         progress: 0,
         finishedAtMs: null,
         endurance: MAX_ENDURANCE,
-        recovering: false
+        recovering: false,
+        showingDust: false,
+        dustTimer: 0
       }))
   })
 
@@ -278,6 +280,36 @@ const HorseRacing = () => {
             else if (eventR < STUMBLE_THRESHOLD) eventBoost = STUMBLE_PENALTY
           }
 
+          // Dust animation logic (after eventBoost is calculated)
+          // Initialize dust state
+          let showingDust = h.showingDust ?? false
+          let dustTimer = h.dustTimer ?? 0
+
+          // Dust appears during acceleration/sprint events or randomly
+          // Also trigger at race start (first few frames)
+          const isRaceStart = h.progress < 50 // First 50 pixels
+          const dustRoll = rand() // Use same RNG as events
+
+          if (showingDust) {
+            // Count down the dust display timer
+            dustTimer -= dt
+            if (dustTimer <= 0) {
+              showingDust = false
+              dustTimer = 0
+            }
+          } else {
+            // Trigger dust on sprint, high speed changes, or randomly
+            const shouldShowDust =
+              isRaceStart || // Always show at start
+              eventBoost > 0 || // Show on sprint boost
+              dustRoll > 0.98 // Random 2% chance per frame to kick up dust
+
+            if (shouldShowDust) {
+              showingDust = true
+              dustTimer = 1.2 // Show dust for 1.2 seconds (doubled)
+            }
+          }
+
           // Calculate base speed
           let speed = Math.max(MIN_SPEED, h.baseSpeed + noise + eventBoost)
 
@@ -294,14 +326,18 @@ const HorseRacing = () => {
               progress: totalDistance,
               finishedAtMs: now - (startTime || now),
               endurance: currentEndurance,
-              recovering: isRecovering
+              recovering: isRecovering,
+              showingDust: false, // Stop dust when finished
+              dustTimer: 0
             }
           }
           return {
             ...h,
             progress: newProgress,
             endurance: currentEndurance,
-            recovering: isRecovering
+            recovering: isRecovering,
+            showingDust: showingDust,
+            dustTimer: dustTimer
           }
         })
       )
@@ -362,7 +398,9 @@ const HorseRacing = () => {
         finishedAtMs: undefined,
         rngSeed: Math.floor(Math.random() * 1e9),
         endurance: MAX_ENDURANCE,
-        recovering: false
+        recovering: false,
+        showingDust: false,
+        dustTimer: 0
       }))
     setHorses(selectedHorses)
 
@@ -420,7 +458,9 @@ const HorseRacing = () => {
           finishedAtMs: undefined,
           rngSeed: Math.floor(Math.random() * 1e9),
           endurance: MAX_ENDURANCE,
-          recovering: false
+          recovering: false,
+          showingDust: false,
+          dustTimer: 0
         }))
       setHorses(selectedHorses)
     }
@@ -535,7 +575,9 @@ const HorseRacing = () => {
             progress: 0,
             finishedAtMs: null,
             endurance: MAX_ENDURANCE,
-            recovering: false
+            recovering: false,
+            showingDust: false,
+            dustTimer: 0
           }))
         setHorses(updatedHorses)
       }
