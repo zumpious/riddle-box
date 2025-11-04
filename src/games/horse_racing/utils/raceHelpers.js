@@ -39,14 +39,16 @@ export function mkId() {
  * Create a new horse object with default values
  * @param {string} name - Horse name
  * @param {string} color - Horse color (hex)
+ * @param {number} number - Horse racing number (optional)
  * @returns {Object} - Horse object
  */
-export function mkHorse(name, color) {
+export function mkHorse(name, color, number) {
   const id = mkId()
   return {
     id,
     name,
     color,
+    number: number || 1, // Racing number (like real horse racing)
     imgSrc: undefined,
     imgFileName: undefined,
     spriteScale: 4,
@@ -81,4 +83,23 @@ export function randomColor() {
     '#f43f5e'
   ]
   return palette[Math.floor(Math.random() * palette.length)]
+}
+
+/**
+ * Get the next available horse number from existing roster
+ * @param {Array} characterRoster - Array of existing characters
+ * @returns {number} - Next available number (1-based)
+ */
+export function getNextHorseNumber(characterRoster) {
+  if (!characterRoster || characterRoster.length === 0) {
+    return 1
+  }
+  
+  // Find the highest existing number
+  const maxNumber = characterRoster.reduce((max, char) => {
+    const num = char.number || 0
+    return num > max ? num : max
+  }, 0)
+  
+  return maxNumber + 1
 }

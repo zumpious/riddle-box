@@ -38,7 +38,7 @@ function HorseEditor({ horses, onChange }) {
           >
             {horses.map((h) => (
               <option key={h.id} value={h.id}>
-                {h.name}
+                #{h.number} {h.name}
               </option>
             ))}
           </select>
@@ -52,6 +52,20 @@ function HorseEditor({ horses, onChange }) {
             value={sel.color}
             onChange={(e) => update({ color: e.target.value })}
           />
+        </div>
+        <div className="editor-row">
+          <label className="editor-label">Racing Number</label>
+          <div className="racing-number-display">
+            <span
+              className="racing-number-badge"
+              style={{ backgroundColor: sel.color }}
+            >
+              #{sel.number}
+            </span>
+            <span className="racing-number-text">
+              This is the permanent racing number for this horse
+            </span>
+          </div>
         </div>
         <div className="editor-row">
           <label className="editor-label">Sprite Image</label>

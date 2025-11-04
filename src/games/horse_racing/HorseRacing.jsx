@@ -17,7 +17,12 @@ import {
   saveSelectedCharacters,
   loadSelectedCharacters
 } from './utils/characterStorage'
-import { mkHorse, randomColor, lcg } from './utils/raceHelpers'
+import {
+  mkHorse,
+  randomColor,
+  lcg,
+  getNextHorseNumber
+} from './utils/raceHelpers'
 import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
 
 // Sound effects
@@ -71,6 +76,8 @@ const HorseRacing = () => {
     const availableImages = loadHorseImages()
 
     if (savedRoster && savedRoster.length > 0) {
+      // Migrate existing horses: assign numbers if they don't have them
+      let nextNumber = 1
       return savedRoster.map((cfg) => {
         let imgSrc = cfg.imgSrc
         if (cfg.imgFileName) {
@@ -79,13 +86,17 @@ const HorseRacing = () => {
           )
           if (match) imgSrc = match.src
         }
-        return { ...cfg, imgSrc }
+
+        // Assign number if missing (migration for existing horses)
+        const number = cfg.number || nextNumber++
+
+        return { ...cfg, imgSrc, number }
       })
     }
 
-    // Initialize with default horses
-    return DEFAULT_HORSES.map((cfg) => ({
-      ...mkHorse(cfg.name, cfg.color),
+    // Initialize with default horses (with numbers 1, 2, ...)
+    return DEFAULT_HORSES.map((cfg, index) => ({
+      ...mkHorse(cfg.name, cfg.color, index + 1),
       imgSrc: loadAvatarImage(cfg.fileName),
       imgFileName: cfg.fileName,
       createdAt: Date.now()
@@ -647,9 +658,11 @@ const HorseRacing = () => {
       // '+' to add a character to roster and select it
       if (e.key === '+' || e.code === 'NumpadAdd') {
         e.preventDefault()
+        const nextNumber = getNextHorseNumber(characterRoster)
         const newChar = mkHorse(
           `Horse ${characterRoster.length + 1}`,
-          randomColor()
+          randomColor(),
+          nextNumber
         )
         newChar.createdAt = Date.now()
         setCharacterRoster((roster) => [...roster, newChar])
@@ -678,6 +691,10 @@ const HorseRacing = () => {
   ])
 
   const handleAddHorse = (newHorse) => {
+    // Assign a number if not already set
+    if (!newHorse.number) {
+      newHorse.number = getNextHorseNumber(characterRoster)
+    }
     newHorse.createdAt = Date.now()
     setCharacterRoster((roster) => [...roster, newHorse])
     setSelectedCharacterIds((ids) => [...ids, newHorse.id])

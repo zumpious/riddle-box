@@ -15,7 +15,9 @@ function HorseList({ horses, onRemove }) {
       <div className="horse-list-grid">
         {horses.map((h) => (
           <div key={h.id} className="horse-row">
-            <div className="horse-color" style={{ background: h.color }} />
+            <div className="horse-color" style={{ background: h.color }}>
+              <div className="horse-number-badge">#{h.number}</div>
+            </div>
             <div className="horse-row-main">
               <div className="horse-name">{h.name}</div>
               <div className="horse-meta">

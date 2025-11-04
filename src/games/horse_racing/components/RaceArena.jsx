@@ -463,35 +463,53 @@ function RaceArena({
                 ? (h.finishedAtMs / 1000).toFixed(2)
                 : currentTime.toFixed(2)
 
+              // Calculate dynamic pill width based on content
+              const padding = 12 // padding on each side
+              const nameText = `#${h.number} ${h.name}`
+              const timeText = `${displayTime}s`
+
+              // Estimate width for each line (using different font sizes)
+              const nameCharWidth = 6.8 // font size 11, weight 700
+              const timeCharWidth = 6.2 // font size 10, weight 600
+              const nameWidth = nameText.length * nameCharWidth
+              const timeWidth = timeText.length * timeCharWidth
+
+              // Use the wider of the two texts
+              const contentWidth = Math.max(nameWidth, timeWidth)
+              const pillWidth = contentWidth + padding * 2
+              const pillHeight = 32
+
               return (
                 <g key={h.id}>
-                  {/* Background pill - colored background fills entire pill */}
+                  {/* Background pill - dynamic width */}
                   <rect
-                    x={x - 55}
+                    x={x - pillWidth / 2}
                     y={yPosition}
-                    width={110}
-                    height={32}
+                    width={pillWidth}
+                    height={pillHeight}
                     rx={16}
                     fill={h.color}
-                    opacity={0.85}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                    opacity={0.95}
                   />
-                  {/* Horse name */}
+                  {/* Horse number and name */}
                   <text
                     x={x}
                     y={yPosition + 15}
                     textAnchor="middle"
-                    fontSize="11"
+                    fontSize="12"
                     fontWeight={700}
                     fill="#ffffff"
                   >
-                    {h.name}
+                    #{h.number} {h.name}
                   </text>
                   {/* Time */}
                   <text
                     x={x}
                     y={yPosition + 26}
                     textAnchor="middle"
-                    fontSize="10"
+                    fontSize="11"
                     fontWeight={600}
                     fill="#ffffff"
                   >
@@ -543,16 +561,34 @@ function RaceArena({
             // Format time: convert milliseconds to seconds with 2 decimal places
             const timeInSeconds = (winner.finishedAtMs / 1000).toFixed(2)
 
+            // Calculate dynamic pill width based on content
+            const padding = 20 // padding on each side
+            const titleText = '🏆'
+            const winnerText = `#${winner.number} ${winner.name}: ${timeInSeconds}s`
+
+            // Estimate width for each line (using different font sizes)
+            const titleCharWidth = 8.5 // font size 14, weight 600 (includes emoji)
+            const winnerCharWidth = 13.5 // font size 22, weight 800
+            const titleWidth = titleText.length * titleCharWidth
+            const winnerWidth = winnerText.length * winnerCharWidth
+
+            // Use the wider of the two texts
+            const contentWidth = Math.max(titleWidth, winnerWidth)
+            const pillWidth = contentWidth + padding * 2
+            const pillHeight = 56
+
             return (
               <g>
-                {/* Background pill for winner - fully colored */}
+                {/* Background pill for winner - dynamic width */}
                 <rect
-                  x={cx - 130}
+                  x={cx - pillWidth / 2}
                   y={cy - 28}
-                  width={260}
-                  height={56}
+                  width={pillWidth}
+                  height={pillHeight}
                   rx={28}
                   fill={winner.color}
+                  stroke="#ffffff"
+                  strokeWidth={2}
                   opacity={0.9}
                 />
                 {/* Winner text */}
@@ -560,11 +596,11 @@ function RaceArena({
                   x={cx}
                   y={cy - 2}
                   textAnchor="middle"
-                  fontSize="14"
+                  fontSize="24"
                   fontWeight={600}
                   fill="#ffffff"
                 >
-                  🏆 Winner
+                  🏆
                 </text>
                 <text
                   x={cx}
@@ -574,7 +610,7 @@ function RaceArena({
                   fontWeight={800}
                   fill="#ffffff"
                 >
-                  {winner.name}: {timeInSeconds}s
+                  #{winner.number} {winner.name}: {timeInSeconds}s
                 </text>
               </g>
             )
@@ -605,28 +641,29 @@ function RaceArena({
                 imgSrc={h.imgSrc}
                 spriteScale={h.spriteScale ?? spriteScaleDefault}
               />
-              {/* Name tag behind the horse, rotated with the sprite */}
-              <g transform={`translate(-70, -10)`} pointerEvents="none">
-                {/* Colored pill background */}
-                <rect
-                  x={20 - 25}
-                  y={3 - 10}
-                  width={50}
-                  height={16}
-                  rx={8}
+              {/* Racing number badge - shown on track */}
+              <g transform={`translate(-40, 25)`} pointerEvents="none">
+                {/* Circle background */}
+                <circle
+                  cx={0}
+                  cy={0}
+                  r={12}
                   fill={h.color}
-                  opacity={0.85}
+                  opacity={0.95}
+                  stroke="#ffffff"
+                  strokeWidth={1}
                 />
-                {/* White text */}
+                {/* Number text */}
                 <text
-                  x={20}
-                  y={3}
+                  x={0}
+                  y={1}
                   textAnchor="middle"
-                  fontSize="9"
+                  dominantBaseline="middle"
+                  fontSize="10"
                   fill="#ffffff"
-                  fontWeight={700}
+                  fontWeight={900}
                 >
-                  {h.name}
+                  #{h.number}
                 </text>
               </g>
 

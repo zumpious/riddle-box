@@ -30,7 +30,7 @@ function RaceResults({ horses, status }) {
             <div className="result-left">
               <span className="place">#{idx + 1}</span>
               <span className="dot" style={{ background: h.color }} />
-              <span className="result-name">{h.name}</span>
+              <span className="result-name">#{h.number} {h.name}</span>
             </div>
             <div className="result-time">{msToClock(h.finishedAtMs)}</div>
           </li>

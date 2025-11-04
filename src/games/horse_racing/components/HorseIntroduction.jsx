@@ -112,6 +112,14 @@ function HorseIntroduction({
               style={{ backgroundColor: horse.color }}
             />
           )}
+
+          {/* Racing number badge (like a bib) */}
+          <div
+            className="intro-horse-number"
+            style={{ backgroundColor: horse.color }}
+          >
+            #{horse.number}
+          </div>
         </div>
 
         {/* Horse Name Banner */}
