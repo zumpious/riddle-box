@@ -10,9 +10,9 @@ export const DEFAULT_RACE_NAME = 'Birthday Grand Prix'
 export const DEFAULT_COUNTDOWN = 3 // seconds
 
 // Display settings
-export const DEFAULT_ARENA_HEIGHT = 800
-export const DEFAULT_TRACK_THICKNESS = 240
-export const DEFAULT_SPRITE_SCALE = 5
+export const DEFAULT_ARENA_HEIGHT = 840
+export const DEFAULT_TRACK_THICKNESS = 235
+export const DEFAULT_SPRITE_SCALE = 4.4
 
 // Arena dimensions
 export const ARENA_WIDTH = 1500

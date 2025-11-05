@@ -31,3 +31,4 @@ yarn-error.log*
 src/img/horse_racing/avatars/*.png
 src/img/horse_racing/avatars/
 src/img/horse_racing/avatars/*.jpg
+src/img/horse_racing/background/

@@ -5,8 +5,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -34,7 +34,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   border: 3px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  min-width: 500px;
+  min-width: 600px;
   position: relative;
   overflow: hidden;
 }
@@ -124,8 +124,8 @@
 
 /* Horse Image */
 .intro-horse-image {
-  width: 300px;
-  height: 300px;
+  width: 500px;
+  height: 500px;
   margin: 0 auto 2rem;
   border-radius: 50%;
   overflow: visible; /* Changed to allow number badge to overflow */
@@ -138,7 +138,6 @@
   background: rgba(255, 255, 255, 0.05);
   position: relative;
 }
-
 
 .intro-horse-img {
   width: 100%;
@@ -250,8 +249,9 @@
 }
 
 .intro-stat-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--horse-color, #ffffff) 35%, transparent);
+  border: 2px solid
+    color-mix(in srgb, var(--horse-color, #ffffff) 25%, transparent);
   border-radius: 16px;
   padding: 0.75rem 1.25rem;
   min-width: 100px;
@@ -287,7 +287,7 @@
 }
 
 .intro-stat-label {
-  color: #94a3b8;
+  color: white;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
