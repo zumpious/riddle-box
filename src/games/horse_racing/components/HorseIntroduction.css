@@ -34,7 +34,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   border: 3px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  min-width: 600px;
+  min-width: 720px;
   position: relative;
   overflow: hidden;
 }

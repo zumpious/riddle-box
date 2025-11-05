@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import './HorseIntroduction.css'
-//import introStatsBg from '../../../img/horse_racing/background/intro_stats.png'
-import introStatsBg from '../../../img/horse_racing/background/intro_stats_pink.png'
+import introStatsBg from '../../../img/horse_racing/background/intro_stats_horses.png'
 
 /**
  * HorseIntroduction Component
