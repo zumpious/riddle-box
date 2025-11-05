@@ -29,8 +29,8 @@ export function loadHorseImages() {
  */
 export function loadGrassBackground() {
   try {
-    //return require('../../../img/horse_racing/background/tisch_sticker.jpeg')
-    return require('../../../img/horse_racing/background/tisch_mit_ecke_neu.png')
+    return require('../../../img/horse_racing/background/tisch_sticker.jpeg')
+    //return require('../../../img/horse_racing/background/tisch_mit_ecke_neu.png')
   } catch (e) {
     return undefined
   }

@@ -28,6 +28,7 @@ import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
 // Sound effects
 import raceStartSound from './sounds/race_start.mp3'
 import backgroundMusic from './sounds/background.mp3'
+import horseWinSound from './sounds/winning.mp3'
 
 // Constants
 import {
@@ -141,6 +142,7 @@ const HorseRacing = () => {
   // Audio refs
   const raceStartAudioRef = useRef(null)
   const backgroundMusicRef = useRef(null)
+  const horseWinAudioRef = useRef(null)
   const baseBackgroundVolume = 0.15 // 15% base volume for background music
   const racingBackgroundVolume = 0.25 // 25% volume during race (10% louder)
 
@@ -152,6 +154,11 @@ const HorseRacing = () => {
     raceStartAudioRef.current = new Audio(raceStartSound)
     raceStartAudioRef.current.volume = 0.5 // 50% volume for race start
     console.log('✅ Race start sound loaded')
+
+    // Horse win sound
+    horseWinAudioRef.current = new Audio(horseWinSound)
+    horseWinAudioRef.current.volume = 0.6 // 60% volume for winning sound
+    console.log('✅ Horse win sound loaded')
 
     // Background music - loop and autoplay
     backgroundMusicRef.current = new Audio(backgroundMusic)
@@ -478,6 +485,21 @@ const HorseRacing = () => {
   ])
 
   const stop = () => setStatus(RACE_STATUS.FINISHED)
+
+  // Play winning sound when first horse finishes
+  useEffect(() => {
+    // Only play when race is running and exactly one horse has finished (the winner!)
+    if (status === RACE_STATUS.RUNNING && finishedCount === 1) {
+      console.log('🏆 First horse finished! Playing winning sound...')
+
+      if (horseWinAudioRef.current) {
+        horseWinAudioRef.current.currentTime = 0 // Reset to start
+        horseWinAudioRef.current.play().catch((err) => {
+          console.log('Audio play prevented:', err)
+        })
+      }
+    }
+  }, [status, finishedCount])
 
   // Auto-finish race when all horses complete
   useEffect(() => {
