@@ -22,7 +22,8 @@ function HorseList({ horses, onRemove }) {
               <div className="horse-name">{h.name}</div>
               <div className="horse-meta">
                 Base {Math.round(h.baseSpeed)} · Stamina {h.stamina}s · Var{' '}
-                {(h.variance * 100).toFixed(0)}%
+                {(h.variance * 100).toFixed(0)}% · Agility{' '}
+                {((h.agility ?? 0.5) * 100).toFixed(0)}%
               </div>
             </div>
             <button className="horse-btn small" onClick={() => onRemove(h.id)}>

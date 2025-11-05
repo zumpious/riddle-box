@@ -29,6 +29,8 @@ import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
 import raceStartSound from './sounds/race_start.mp3'
 import backgroundMusic from './sounds/background.mp3'
 import horseWinSound from './sounds/winning.mp3'
+import jumpSound from './sounds/jump.mp3'
+import splashSound from './sounds/splash.mp3'
 
 // Constants
 import {
@@ -49,7 +51,12 @@ import {
   STUMBLE_PENALTY,
   MAX_ENDURANCE,
   ENDURANCE_RECOVERY_RATE,
-  RECOVERY_SPEED_MULTIPLIER
+  RECOVERY_SPEED_MULTIPLIER,
+  PUDDLE_SPAWN_TIME,
+  PUDDLE_DISAPPEAR_DELAY,
+  FALL_RECOVERY_TIME,
+  JUMP_SUCCESS_THRESHOLD,
+  JUMP_ANIMATION_DURATION
 } from './constants'
 
 /**
@@ -77,7 +84,7 @@ const HorseRacing = () => {
     const availableImages = loadHorseImages()
 
     if (savedRoster && savedRoster.length > 0) {
-      // Migrate existing horses: assign numbers if they don't have them
+      // Migrate existing horses: assign numbers and agility if they don't have them
       let nextNumber = 1
       return savedRoster.map((cfg) => {
         let imgSrc = cfg.imgSrc
@@ -91,7 +98,10 @@ const HorseRacing = () => {
         // Assign number if missing (migration for existing horses)
         const number = cfg.number || nextNumber++
 
-        return { ...cfg, imgSrc, number }
+        // Assign default agility if missing (migration for existing horses)
+        const agility = cfg.agility ?? 0.5
+
+        return { ...cfg, imgSrc, number, agility }
       })
     }
 
@@ -126,13 +136,24 @@ const HorseRacing = () => {
         endurance: MAX_ENDURANCE,
         recovering: false,
         showingDust: false,
-        dustTimer: 0
+        dustTimer: 0,
+        falling: false,
+        fallStartTime: 0,
+        jumping: false,
+        jumpStartTime: 0,
+        puddleInteracted: false
       }))
   })
 
   const [status, setStatus] = useState(RACE_STATUS.IDLE)
   const [startTime, setStartTime] = useState(null)
   const [audioEnabled, setAudioEnabled] = useState(false)
+
+  // Puddle obstacles - one per horse, spawned randomly on each track
+  const [puddles, setPuddles] = useState([])
+  const puddleSpawnTimerRef = useRef(null)
+  const puddlesSpawnedRef = useRef(false)
+  const raceStartTimeRef = useRef(null)
 
   // Introduction state
   const [introductionIndex, setIntroductionIndex] = useState(0)
@@ -143,6 +164,8 @@ const HorseRacing = () => {
   const raceStartAudioRef = useRef(null)
   const backgroundMusicRef = useRef(null)
   const horseWinAudioRef = useRef(null)
+  const jumpAudioRef = useRef(null)
+  const splashAudioRef = useRef(null)
   const baseBackgroundVolume = 0.15 // 15% base volume for background music
   const racingBackgroundVolume = 0.25 // 25% volume during race (10% louder)
 
@@ -159,6 +182,16 @@ const HorseRacing = () => {
     horseWinAudioRef.current = new Audio(horseWinSound)
     horseWinAudioRef.current.volume = 0.6 // 60% volume for winning sound
     console.log('✅ Horse win sound loaded')
+
+    // Jump sound
+    jumpAudioRef.current = new Audio(jumpSound)
+    jumpAudioRef.current.volume = 0.7 // 70% volume for jump sound
+    console.log('✅ Jump sound loaded')
+
+    // Splash sound
+    splashAudioRef.current = new Audio(splashSound)
+    splashAudioRef.current.volume = 0.7 // 70% volume for splash sound
+    console.log('✅ Splash sound loaded')
 
     // Background music - loop and autoplay
     backgroundMusicRef.current = new Audio(backgroundMusic)
@@ -227,6 +260,65 @@ const HorseRacing = () => {
   const totalDistance = lapLengthPx * laps
   const finishedCount = horses.filter((h) => h.finishedAtMs != null).length
 
+  // Spawn puddles after race starts - only once per race
+  useEffect(() => {
+    // Only spawn when race starts running and we haven't spawned yet for this race
+    if (status !== RACE_STATUS.RUNNING || !startTime) {
+      return
+    }
+
+    // Check if this is a new race (different startTime)
+    const isNewRace = raceStartTimeRef.current !== startTime
+
+    // Only spawn if this is a new race and we haven't spawned yet
+    if (!isNewRace || puddlesSpawnedRef.current) {
+      return
+    }
+
+    // Mark this as the current race start time
+    raceStartTimeRef.current = startTime
+
+    // Clear any existing timer
+    if (puddleSpawnTimerRef.current) {
+      clearTimeout(puddleSpawnTimerRef.current)
+    }
+
+    // Capture horses at race start
+    const horsesAtStart = horses.map((h) => ({
+      id: h.id,
+      name: h.name
+    }))
+    const totalDistAtStart = totalDistance
+
+    puddleSpawnTimerRef.current = setTimeout(() => {
+      // Create one puddle per horse at a random position
+      const newPuddles = horsesAtStart.map((h) => {
+        // Spawn at 30-70% of total distance (avoid too early or too late)
+        const minPos = totalDistAtStart * 0.3
+        const maxPos = totalDistAtStart * 0.7
+        const position = minPos + Math.random() * (maxPos - minPos)
+
+        return {
+          horseId: h.id,
+          position,
+          spawned: true,
+          passed: false,
+          disappearAt: null // Set when horse passes
+        }
+      })
+      setPuddles(newPuddles)
+      puddlesSpawnedRef.current = true
+    }, PUDDLE_SPAWN_TIME)
+
+    return () => {
+      if (puddleSpawnTimerRef.current) {
+        clearTimeout(puddleSpawnTimerRef.current)
+        puddleSpawnTimerRef.current = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, startTime]) // Only depend on status and startTime - horses and totalDistance accessed only when needed
+
   // Animation loop
   useEffect(() => {
     if (status !== RACE_STATUS.RUNNING) return
@@ -242,6 +334,44 @@ const HorseRacing = () => {
       setHorses((curr) =>
         curr.map((h) => {
           if (h.finishedAtMs != null) return h
+
+          // Check if horse is currently falling
+          const isFalling = h.falling ?? false
+          const fallStartTime = h.fallStartTime ?? 0
+          const isJumping = h.jumping ?? false
+          const jumpStartTime = h.jumpStartTime ?? 0
+          const puddleInteracted = h.puddleInteracted ?? false
+
+          // If falling, check if recovery time has elapsed
+          if (isFalling) {
+            const elapsedFallTime = (now - fallStartTime) / 1000
+            if (elapsedFallTime >= FALL_RECOVERY_TIME) {
+              // Recovery complete, continue racing
+              return {
+                ...h,
+                falling: false,
+                fallStartTime: 0
+              }
+            } else {
+              // Still fallen - no progress
+              return h
+            }
+          }
+
+          // If jumping, check if animation has completed
+          if (isJumping) {
+            const elapsedJumpTime = (now - jumpStartTime) / 1000
+            if (elapsedJumpTime >= JUMP_ANIMATION_DURATION) {
+              // Jump complete
+              return {
+                ...h,
+                jumping: false,
+                jumpStartTime: 0
+              }
+            }
+            // Continue with jump animation (still make progress)
+          }
+
           const rand = lcg(h.rngSeed + Math.floor(h.progress / 20))
 
           // Initialize endurance if not set
@@ -327,6 +457,92 @@ const HorseRacing = () => {
 
           const newProgress = h.progress + speed * dt
 
+          // Check for puddle collision
+          if (!puddleInteracted && puddles.length > 0) {
+            const horsePuddle = puddles.find((p) => p.horseId === h.id)
+            if (horsePuddle && !horsePuddle.passed) {
+              // Check if horse is approaching or at puddle
+              const puddleDetectionRange = 20 // pixels before puddle to trigger
+              if (
+                newProgress >= horsePuddle.position - puddleDetectionRange &&
+                h.progress < horsePuddle.position
+              ) {
+                // Horse reached puddle - determine jump success
+                const agility = h.agility ?? 0.5
+                const randomFactor = rand() * 0.3 // Add some randomness (0-0.3)
+                const jumpChance = agility + randomFactor
+
+                const jumpSuccess = jumpChance >= JUMP_SUCCESS_THRESHOLD
+
+                if (jumpSuccess) {
+                  // Successful jump - start jump animation
+                  // Play jump sound
+                  if (jumpAudioRef.current) {
+                    jumpAudioRef.current.currentTime = 0 // Reset to start
+                    jumpAudioRef.current.play().catch((err) => {
+                      console.log('Jump sound play prevented:', err)
+                    })
+                  }
+
+                  setPuddles((prev) =>
+                    prev.map((p) =>
+                      p.horseId === h.id
+                        ? {
+                            ...p,
+                            passed: true,
+                            disappearAt: now + PUDDLE_DISAPPEAR_DELAY
+                          }
+                        : p
+                    )
+                  )
+                  return {
+                    ...h,
+                    progress: newProgress,
+                    endurance: currentEndurance,
+                    recovering: isRecovering,
+                    showingDust: showingDust,
+                    dustTimer: dustTimer,
+                    jumping: true,
+                    jumpStartTime: now,
+                    puddleInteracted: true
+                  }
+                } else {
+                  // Failed jump - horse falls
+                  // Play splash sound
+                  if (splashAudioRef.current) {
+                    splashAudioRef.current.currentTime = 0 // Reset to start
+                    splashAudioRef.current.play().catch((err) => {
+                      console.log('Splash sound play prevented:', err)
+                    })
+                  }
+
+                  setPuddles((prev) =>
+                    prev.map((p) =>
+                      p.horseId === h.id
+                        ? {
+                            ...p,
+                            passed: true,
+                            disappearAt: now + PUDDLE_DISAPPEAR_DELAY
+                          }
+                        : p
+                    )
+                  )
+                  return {
+                    ...h,
+                    progress: h.progress, // Stay at current position
+                    endurance: currentEndurance,
+                    recovering: isRecovering,
+                    showingDust: false,
+                    dustTimer: 0,
+                    falling: true,
+                    fallStartTime: now,
+                    puddleInteracted: true
+                  }
+                }
+              }
+            }
+          }
+
           if (newProgress >= totalDistance) {
             return {
               ...h,
@@ -344,7 +560,12 @@ const HorseRacing = () => {
             endurance: currentEndurance,
             recovering: isRecovering,
             showingDust: showingDust,
-            dustTimer: dustTimer
+            dustTimer: dustTimer,
+            jumping: isJumping,
+            jumpStartTime: jumpStartTime,
+            falling: isFalling,
+            fallStartTime: fallStartTime,
+            puddleInteracted: puddleInteracted
           }
         })
       )
@@ -354,11 +575,16 @@ const HorseRacing = () => {
 
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [status, startTime, totalDistance])
+  }, [status, startTime, totalDistance, puddles])
 
   const go = useCallback(() => {
-    setStartTime(performance.now())
+    const newStartTime = performance.now()
+    setStartTime(newStartTime)
     setStatus(RACE_STATUS.RUNNING)
+    // Reset puddle spawn flag for new race
+    puddlesSpawnedRef.current = false
+    raceStartTimeRef.current = null // Will be set when effect runs
+    setPuddles([])
   }, [])
 
   // Introduction sequence - manual navigation with arrow keys (no auto-advance)
@@ -407,9 +633,17 @@ const HorseRacing = () => {
         endurance: MAX_ENDURANCE,
         recovering: false,
         showingDust: false,
-        dustTimer: 0
+        dustTimer: 0,
+        falling: false,
+        fallStartTime: 0,
+        jumping: false,
+        jumpStartTime: 0,
+        puddleInteracted: false
       }))
     setHorses(selectedHorses)
+    setPuddles([]) // Clear puddles from previous race
+    puddlesSpawnedRef.current = false // Reset spawn flag
+    raceStartTimeRef.current = null // Reset race start time ref
 
     // Reset introduction state
     setIntroductionIndex(0)
@@ -467,9 +701,17 @@ const HorseRacing = () => {
           endurance: MAX_ENDURANCE,
           recovering: false,
           showingDust: false,
-          dustTimer: 0
+          dustTimer: 0,
+          falling: false,
+          fallStartTime: 0,
+          jumping: false,
+          jumpStartTime: 0,
+          puddleInteracted: false
         }))
       setHorses(selectedHorses)
+      setPuddles([]) // Clear puddles from previous race
+      puddlesSpawnedRef.current = false // Reset spawn flag
+      raceStartTimeRef.current = null // Reset race start time ref
     }
 
     // Start countdown with 300ms delay
@@ -484,7 +726,12 @@ const HorseRacing = () => {
     selectedCharacterIds
   ])
 
-  const stop = () => setStatus(RACE_STATUS.FINISHED)
+  const stop = () => {
+    setStatus(RACE_STATUS.FINISHED)
+    // Reset puddle spawn flag when race ends
+    puddlesSpawnedRef.current = false
+    raceStartTimeRef.current = null
+  }
 
   // Play winning sound when first horse finishes
   useEffect(() => {
@@ -599,7 +846,12 @@ const HorseRacing = () => {
             endurance: MAX_ENDURANCE,
             recovering: false,
             showingDust: false,
-            dustTimer: 0
+            dustTimer: 0,
+            falling: false,
+            fallStartTime: 0,
+            jumping: false,
+            jumpStartTime: 0,
+            puddleInteracted: false
           }))
         setHorses(updatedHorses)
       }
@@ -789,6 +1041,7 @@ const HorseRacing = () => {
                 introductionIndex={introductionIndex}
                 introductionComplete={introductionComplete}
                 introNavDirection={introNavDirection}
+                puddles={puddles}
               />
             </div>
 

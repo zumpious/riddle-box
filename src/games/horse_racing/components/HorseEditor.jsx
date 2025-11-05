@@ -134,6 +134,17 @@ function HorseEditor({ horses, onChange }) {
             onChange={(e) => update({ variance: Number(e.target.value) })}
           />
         </label>
+        <label className="slider">
+          Agility (Jump)
+          <input
+            type="range"
+            min={RANGES.AGILITY.min}
+            max={RANGES.AGILITY.max}
+            step={RANGES.AGILITY.step}
+            value={sel.agility ?? 0.5}
+            onChange={(e) => update({ agility: Number(e.target.value) })}
+          />
+        </label>
         <button
           className="horse-btn small align-right"
           onClick={() => update({ svgPath: undefined })}

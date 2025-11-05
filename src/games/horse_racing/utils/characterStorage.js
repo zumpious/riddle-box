@@ -21,6 +21,7 @@ export function saveCharacterRoster(characters) {
     baseSpeed: c.baseSpeed,
     stamina: c.stamina,
     variance: c.variance,
+    agility: c.agility ?? 0.5, // Default for legacy horses
     // Stats
     wins: c.wins || 0,
     races: c.races || 0,

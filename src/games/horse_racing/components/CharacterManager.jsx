@@ -6,7 +6,7 @@ import './CharacterManager.css'
 /**
  * CharacterManager Component
  * Manages the permanent character roster and race selection
- * 
+ *
  * @param {Array} characterRoster - All available characters
  * @param {Array} selectedIds - IDs of characters selected for current race
  * @param {Function} onRosterChange - Callback when roster is modified
@@ -32,7 +32,10 @@ function CharacterManager({
   }
 
   const handleAddNewCharacter = () => {
-    const newChar = mkHorse(`Horse ${characterRoster.length + 1}`, randomColor())
+    const newChar = mkHorse(
+      `Horse ${characterRoster.length + 1}`,
+      randomColor()
+    )
     onRosterChange([...characterRoster, { ...newChar, createdAt: Date.now() }])
   }
 
@@ -143,6 +146,10 @@ function CharacterManager({
                     <div className="character-card-stats">
                       <span>Speed: {Math.round(character.baseSpeed)}</span>
                       <span>Stamina: {character.stamina}s</span>
+                      <span>
+                        Agility: {((character.agility ?? 0.5) * 100).toFixed(0)}
+                        %
+                      </span>
                     </div>
                     {character.races > 0 && (
                       <div className="character-card-record">
@@ -170,7 +177,10 @@ function CharacterManager({
           <button className="horse-btn" onClick={handleAddNewCharacter}>
             + Add New Character
           </button>
-          <button className="horse-btn primary" onClick={() => setIsOpen(false)}>
+          <button
+            className="horse-btn primary"
+            onClick={() => setIsOpen(false)}
+          >
             Done
           </button>
         </div>
@@ -180,4 +190,3 @@ function CharacterManager({
 }
 
 export default CharacterManager
-

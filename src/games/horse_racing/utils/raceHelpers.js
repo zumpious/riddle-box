@@ -55,6 +55,7 @@ export function mkHorse(name, color, number) {
     baseSpeed: 100 + Math.random() * 40,
     stamina: 12 + Math.random() * 12,
     variance: 0.18 + Math.random() * 0.12,
+    agility: 0.3 + Math.random() * 0.5, // 0.3 to 0.8 - jumping/obstacle navigation ability
     progress: 0,
     rngSeed: Math.floor(Math.random() * 1e9),
     // Stats
@@ -94,12 +95,12 @@ export function getNextHorseNumber(characterRoster) {
   if (!characterRoster || characterRoster.length === 0) {
     return 1
   }
-  
+
   // Find the highest existing number
   const maxNumber = characterRoster.reduce((max, char) => {
     const num = char.number || 0
     return num > max ? num : max
   }, 0)
-  
+
   return maxNumber + 1
 }

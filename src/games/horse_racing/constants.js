@@ -63,6 +63,13 @@ export const RACE_STATUS = {
 // Introduction settings
 export const INTRO_DURATION_PER_HORSE = 5000 // milliseconds per horse intro
 
+// Puddle obstacle system
+export const PUDDLE_SPAWN_TIME = 4000 // milliseconds - when puddles spawn after race starts
+export const PUDDLE_DISAPPEAR_DELAY = 2000 // milliseconds - how long after passing before puddle fades
+export const FALL_RECOVERY_TIME = 2.5 // seconds - how long horse stays down after failed jump
+export const JUMP_SUCCESS_THRESHOLD = 0.5 // base threshold - agility must be higher for success
+export const JUMP_ANIMATION_DURATION = 0.6 // seconds - duration of jump animation
+
 // Input ranges
 export const RANGES = {
   LAPS: { min: 1, max: 50 },
@@ -73,5 +80,6 @@ export const RANGES = {
   BASE_SPEED: { min: 60, max: 160 },
   SPRITE_SIZE: { min: 2, max: 6, step: 0.1 },
   STAMINA: { min: 5, max: 40 },
-  VARIANCE: { min: 0, max: 0.6, step: 0.02 }
+  VARIANCE: { min: 0, max: 0.6, step: 0.02 },
+  AGILITY: { min: 0.1, max: 0.9, step: 0.05 }
 }

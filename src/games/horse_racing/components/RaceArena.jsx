@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import HorseSprite from './HorseSprite'
 import HorseIntroduction from './HorseIntroduction'
 import DustCloud, { DustCloudDefs } from './DustCloud'
+import Puddle, { PuddleDefs } from './Puddle'
 import { loadGrassBackground } from '../utils/assetLoader'
 import {
   ARENA_WIDTH,
@@ -33,6 +34,7 @@ const grassBg = loadGrassBackground()
  * @param {number} introductionIndex - Current horse being introduced
  * @param {boolean} introductionComplete - Whether all introductions are complete
  * @param {string} introNavDirection - Direction of navigation ('right' or 'left')
+ * @param {Array} puddles - Array of puddle obstacles
  */
 function RaceArena({
   horses,
@@ -47,7 +49,8 @@ function RaceArena({
   startTime,
   introductionIndex,
   introductionComplete,
-  introNavDirection
+  introNavDirection,
+  puddles
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -361,6 +364,9 @@ function RaceArena({
 
           {/* Dust cloud animation definitions */}
           <DustCloudDefs />
+
+          {/* Puddle obstacle definitions */}
+          <PuddleDefs />
         </defs>
 
         {/* Background - use image if available, otherwise gradient */}
@@ -620,6 +626,47 @@ function RaceArena({
             )
           })()}
 
+        {/* Puddles - render on track before horses */}
+        {puddles && puddles.length > 0 ? (
+          <>
+            {puddles.map((puddle) => {
+              // Find the horse index that matches this puddle
+              const horseIdx = horses.findIndex((h) => h.id === puddle.horseId)
+              if (horseIdx === -1 || !puddle.spawned) {
+                return null
+              }
+
+              const Rlane = laneMidR(horseIdx)
+              const PL = laneMidPerimeter(horseIdx)
+
+              // Apply start offset for this lane (same as horse)
+              // puddle.position is in progress units (0 to totalDistance), same as h.progress
+              // We map it exactly like horse progress
+              const startOffset = getStartOffset(horseIdx)
+              const adjustedPuddlePos = puddle.position + startOffset
+
+              // Map puddle position on this lane's oval (same calculation as horses)
+              const sLane = ((adjustedPuddlePos % PL) + PL) % PL
+              const p = poseOnStadium(sLane, Rlane, straightLen)
+              const rotDeg = (p.headingRad * 180) / Math.PI
+
+              // Check if puddle should be disappearing
+              const now = performance.now()
+              const isDisappearing =
+                puddle.disappearAt && now >= puddle.disappearAt
+
+              return (
+                <g
+                  key={`puddle-${puddle.horseId}`}
+                  transform={`translate(${p.x}, ${p.y}) rotate(${rotDeg})`}
+                >
+                  <Puddle visible={true} disappearing={isDisappearing} />
+                </g>
+              )
+            })}
+          </>
+        ) : null}
+
         {/* Horses */}
         {horses.map((h, idx) => {
           const Rlane = laneMidR(idx)
@@ -634,18 +681,39 @@ function RaceArena({
           const p = poseOnStadium(sLane, Rlane, straightLen)
           const rotDeg = (p.headingRad * 180) / Math.PI
 
+          // Calculate animation transforms
+          let animationTransform = ''
+          if (h.jumping) {
+            // Jump animation - arc up and down
+            const jumpProgress = h.jumpStartTime
+              ? Math.min(1, (performance.now() - h.jumpStartTime) / 600) // 600ms = JUMP_ANIMATION_DURATION in ms
+              : 0
+            // Parabolic arc: reaches peak at 0.5, lands at 1.0
+            const jumpHeight = -30 * Math.sin(jumpProgress * Math.PI) // Max height 30px up
+            animationTransform = `translate(0, ${jumpHeight})`
+          } else if (h.falling) {
+            // Fall animation - rotate 90 degrees (horse on its side)
+            animationTransform = 'rotate(90)'
+          }
+
           return (
             <g
               key={h.id}
               transform={`translate(${p.x}, ${p.y}) rotate(${rotDeg})`}
             >
-              <HorseSprite
-                color={h.color}
-                svgPath={h.svgPath}
-                imgSrc={h.imgSrc}
-                spriteScale={h.spriteScale ?? spriteScaleDefault}
-              />
-              {/* Racing number badge - shown on track */}
+              {/* Horse sprite with jump/fall animation */}
+              <g transform={animationTransform}>
+                <HorseSprite
+                  color={h.color}
+                  svgPath={h.svgPath}
+                  imgSrc={h.imgSrc}
+                  spriteScale={h.spriteScale ?? spriteScaleDefault}
+                />
+                {/* Dust clouds when running/accelerating (part of animated group) */}
+                <DustCloud visible={h.showingDust && !h.falling} />
+              </g>
+
+              {/* Racing number badge - shown on track (not animated) */}
               <g transform={`translate(-40, 25)`} pointerEvents="none">
                 {/* Circle background */}
                 <circle
@@ -708,9 +776,6 @@ function RaceArena({
                     </g>
                   )
                 })()}
-
-              {/* Dust clouds when running/accelerating */}
-              <DustCloud visible={h.showingDust} />
             </g>
           )
         })}

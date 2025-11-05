@@ -20,6 +20,7 @@ export function saveConfig(horses) {
     baseSpeed: h.baseSpeed,
     stamina: h.stamina,
     variance: h.variance,
+    agility: h.agility ?? 0.5,
     rngSeed: h.rngSeed,
     // Stats
     wins: h.wins || 0,
@@ -58,6 +59,7 @@ export function exportConfig(horses) {
     baseSpeed: h.baseSpeed,
     stamina: h.stamina,
     variance: h.variance,
+    agility: h.agility ?? 0.5,
     rngSeed: h.rngSeed,
     wins: h.wins || 0,
     races: h.races || 0,
