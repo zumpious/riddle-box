@@ -24,6 +24,10 @@ import {
   getNextHorseNumber
 } from './utils/raceHelpers'
 import { loadHorseImages, loadAvatarImage } from './utils/assetLoader'
+import {
+  useBroadcastState,
+  openPresenterWindow
+} from './utils/useBroadcastState'
 
 // Sound effects
 import raceStartSound from './sounds/race_start.mp3'
@@ -259,6 +263,24 @@ const HorseRacing = () => {
   // Derived values
   const totalDistance = lapLengthPx * laps
   const finishedCount = horses.filter((h) => h.finishedAtMs != null).length
+
+  // Broadcast state to presenter window
+  useBroadcastState({
+    horses,
+    totalDistance,
+    status,
+    countdown,
+    lapLengthPx,
+    laps,
+    arenaHeight,
+    trackThickness: trackThicknessUi,
+    spriteScaleDefault,
+    startTime,
+    introductionIndex,
+    introductionComplete,
+    introNavDirection,
+    puddles
+  })
 
   // Spawn puddles after race starts - only once per race
   useEffect(() => {
@@ -1065,12 +1087,14 @@ const HorseRacing = () => {
           </div>
 
           <div className="horse-col-right">
-            {/* Character Manager Button */}
+            {/* Character Manager and Presenter Window Buttons */}
             <div
               style={{
                 marginBottom: '1rem',
                 display: 'flex',
-                justifyContent: 'center'
+                gap: '0.5rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap'
               }}
             >
               <CharacterManager
@@ -1079,6 +1103,13 @@ const HorseRacing = () => {
                 onRosterChange={setCharacterRoster}
                 onSelectionChange={setSelectedCharacterIds}
               />
+              <button
+                className="open-presenter-btn"
+                onClick={openPresenterWindow}
+                title="Open presenter window for second screen"
+              >
+                📺 Open Presenter Window
+              </button>
             </div>
 
             <RaceHeader
@@ -1109,7 +1140,8 @@ const HorseRacing = () => {
             <RaceResults horses={horses} status={status} />
 
             <div className="horse-tip">
-              💡 Tip: Press <strong>F</strong> for fullscreen · Press{' '}
+              💡 Tip: Click <strong>📺 Open Presenter Window</strong> for
+              dual-screen mode · Press <strong>F</strong> for fullscreen · Press{' '}
               <strong>I</strong> to start intro (use <strong>←/→</strong> arrows
               to navigate, then <strong>Space</strong> to race) · Press{' '}
               <strong>Space</strong> to start race directly · <strong>+</strong>
