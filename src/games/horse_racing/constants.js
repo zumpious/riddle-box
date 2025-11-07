@@ -79,10 +79,11 @@ export const DEFAULT_HORSE_ATTRIBUTES = {
 }
 
 // Dice roll (R+D) randomization ranges
+// Balanced by GAMEPLAY IMPACT (speed is most important, agility least)
 export const DICE_ROLL_RANGES = {
-  SPEED_MAX_CHANGE: 20, // ±20 px/s max change
-  STAMINA_MAX_CHANGE: 5, // ±5 seconds max change
-  AGILITY_MAX_CHANGE: 0.15 // ±0.15 max change
+  SPEED_MAX_CHANGE: 5, // ±25 px/s - HIGHEST impact (directly affects race time)
+  STAMINA_MAX_CHANGE: 8, // ±8 seconds - MEDIUM impact (affects recovery frequency)
+  AGILITY_MAX_CHANGE: 0.08 // ±0.08 - LOWEST impact (only affects puddle jumps)
 }
 
 // Input ranges
