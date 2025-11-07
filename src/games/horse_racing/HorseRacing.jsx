@@ -46,6 +46,7 @@ import {
   DEFAULT_TRACK_THICKNESS,
   DEFAULT_SPRITE_SCALE,
   DEFAULT_HORSES,
+  DEFAULT_HORSE_ATTRIBUTES,
   RACE_STATUS,
   VARIANCE_MULTIPLIER,
   MIN_SPEED,
@@ -843,6 +844,9 @@ const HorseRacing = () => {
   // Track previous selection to detect real changes
   const prevSelectionRef = useRef(selectedCharacterIds)
 
+  // Track 'r' key press for reset shortcuts
+  const rKeyPressedRef = useRef(false)
+
   // Sync horses with selection when selection changes (not racing)
   useEffect(() => {
     const prevSelection = prevSelectionRef.current
@@ -932,6 +936,76 @@ const HorseRacing = () => {
     const onKeyDown = (e) => {
       if (isTypingTarget(e.target)) return
 
+      // Track 'r' key press for reset combinations
+      if (e.key === 'r' || e.key === 'R') {
+        rKeyPressedRef.current = true
+        return
+      }
+
+      // 'r+a' to reset all horse attributes to default values
+      if ((e.key === 'a' || e.key === 'A') && rKeyPressedRef.current) {
+        e.preventDefault()
+        console.log('🔄 Resetting all horse attributes to defaults...')
+
+        // Reset attributes for all horses in character roster
+        setCharacterRoster((currentRoster) =>
+          currentRoster.map((horse) => ({
+            ...horse,
+            baseSpeed: DEFAULT_HORSE_ATTRIBUTES.BASE_SPEED,
+            stamina: DEFAULT_HORSE_ATTRIBUTES.STAMINA,
+            variance: DEFAULT_HORSE_ATTRIBUTES.VARIANCE,
+            agility: DEFAULT_HORSE_ATTRIBUTES.AGILITY
+          }))
+        )
+
+        // Also update horses in current race if not racing
+        if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
+          setHorses((currentHorses) =>
+            currentHorses.map((horse) => ({
+              ...horse,
+              baseSpeed: DEFAULT_HORSE_ATTRIBUTES.BASE_SPEED,
+              stamina: DEFAULT_HORSE_ATTRIBUTES.STAMINA,
+              variance: DEFAULT_HORSE_ATTRIBUTES.VARIANCE,
+              agility: DEFAULT_HORSE_ATTRIBUTES.AGILITY
+            }))
+          )
+        }
+
+        console.log('✅ All horse attributes reset to defaults')
+        return
+      }
+
+      // 'r+s' to reset all racing statistics
+      if ((e.key === 's' || e.key === 'S') && rKeyPressedRef.current) {
+        e.preventDefault()
+        console.log('🔄 Resetting all racing statistics...')
+
+        // Reset statistics for all horses in character roster
+        setCharacterRoster((currentRoster) =>
+          currentRoster.map((horse) => ({
+            ...horse,
+            wins: 0,
+            races: 0,
+            totalTime: 0
+          }))
+        )
+
+        // Also update horses in current race if not racing
+        if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
+          setHorses((currentHorses) =>
+            currentHorses.map((horse) => ({
+              ...horse,
+              wins: 0,
+              races: 0,
+              totalTime: 0
+            }))
+          )
+        }
+
+        console.log('✅ All racing statistics reset')
+        return
+      }
+
       // 'i' or 'I' to start/restart introduction sequence
       if (e.key === 'i' || e.key === 'I') {
         if (
@@ -1018,8 +1092,19 @@ const HorseRacing = () => {
       }
     }
 
+    const onKeyUp = (e) => {
+      // Reset 'r' key tracking when released
+      if (e.key === 'r' || e.key === 'R') {
+        rKeyPressedRef.current = false
+      }
+    }
+
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
   }, [
     status,
     startCountdown,
@@ -1146,7 +1231,8 @@ const HorseRacing = () => {
               <strong>I</strong> to start intro (use <strong>←/→</strong> arrows
               to navigate, then <strong>Space</strong> to race) · Press{' '}
               <strong>Space</strong> to start race directly · <strong>+</strong>
-              /<strong>-</strong> to add/remove horses
+              /<strong>-</strong> to add/remove horses · <strong>R+A</strong> to
+              reset attributes · <strong>R+S</strong> to reset statistics
             </div>
           </div>
         </div>

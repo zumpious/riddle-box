@@ -70,6 +70,14 @@ export const FALL_RECOVERY_TIME = 2.5 // seconds - how long horse stays down aft
 export const JUMP_SUCCESS_THRESHOLD = 0.5 // base threshold - agility must be higher for success
 export const JUMP_ANIMATION_DURATION = 0.6 // seconds - duration of jump animation
 
+// Default horse attribute values (for reset functionality)
+export const DEFAULT_HORSE_ATTRIBUTES = {
+  BASE_SPEED: 100, // middle of range (100-140)
+  STAMINA: 18, // middle of range (12-24)
+  VARIANCE: 0.5, // middle of range (0.18-0.30)
+  AGILITY: 0.3 // middle of range (0.3-0.8)
+}
+
 // Input ranges
 export const RANGES = {
   LAPS: { min: 1, max: 50 },
