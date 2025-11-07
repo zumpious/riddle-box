@@ -219,3 +219,27 @@
     display: none;
   }
 }
+
+/* Shuffle notification animation - slide in from top, pause, slide out */
+.shuffle-notification {
+  animation: shuffleSlideInOut 2s ease-in-out;
+}
+
+@keyframes shuffleSlideInOut {
+  0% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}

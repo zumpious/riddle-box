@@ -74,8 +74,15 @@ export const JUMP_ANIMATION_DURATION = 0.6 // seconds - duration of jump animati
 export const DEFAULT_HORSE_ATTRIBUTES = {
   BASE_SPEED: 100, // middle of range (100-140)
   STAMINA: 18, // middle of range (12-24)
-  VARIANCE: 0.5, // middle of range (0.18-0.30)
+  VARIANCE: 0.4, // middle of range (0.18-0.30)
   AGILITY: 0.3 // middle of range (0.3-0.8)
+}
+
+// Dice roll (R+D) randomization ranges
+export const DICE_ROLL_RANGES = {
+  SPEED_MAX_CHANGE: 20, // ±20 px/s max change
+  STAMINA_MAX_CHANGE: 5, // ±5 seconds max change
+  AGILITY_MAX_CHANGE: 0.15 // ±0.15 max change
 }
 
 // Input ranges

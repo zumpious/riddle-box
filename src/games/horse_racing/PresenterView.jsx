@@ -25,6 +25,7 @@ const PresenterView = () => {
   const [puddles, setPuddles] = useState([])
   const [isConnected, setIsConnected] = useState(false)
   const [currentTime, setCurrentTime] = useState(null)
+  const [showShuffleNotification, setShowShuffleNotification] = useState(false)
 
   const channelRef = useRef(null)
 
@@ -62,6 +63,7 @@ const PresenterView = () => {
           setIntroNavDirection(payload.introNavDirection || 'right')
           setPuddles(payload.puddles || [])
           setCurrentTime(payload.currentTime || null)
+          setShowShuffleNotification(payload.showShuffleNotification || false)
           setIsConnected(true)
           break
 
@@ -83,6 +85,7 @@ const PresenterView = () => {
           setIntroNavDirection(payload.introNavDirection || 'right')
           setPuddles(payload.puddles || [])
           setCurrentTime(payload.currentTime || null)
+          setShowShuffleNotification(payload.showShuffleNotification || false)
           setIsConnected(true)
           break
 
@@ -144,6 +147,7 @@ const PresenterView = () => {
           introNavDirection={introNavDirection}
           puddles={puddles}
           syncedCurrentTime={currentTime}
+          showShuffleNotification={showShuffleNotification}
         />
       </div>
 

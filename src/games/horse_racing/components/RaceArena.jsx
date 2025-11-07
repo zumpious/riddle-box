@@ -36,6 +36,7 @@ const grassBg = loadGrassBackground()
  * @param {string} introNavDirection - Direction of navigation ('right' or 'left')
  * @param {Array} puddles - Array of puddle obstacles
  * @param {number} syncedCurrentTime - Synchronized current time from main window (for presenter mode)
+ * @param {boolean} showShuffleNotification - Whether to show dice roll notification
  */
 function RaceArena({
   horses,
@@ -52,7 +53,8 @@ function RaceArena({
   introductionComplete,
   introNavDirection,
   puddles,
-  syncedCurrentTime
+  syncedCurrentTime,
+  showShuffleNotification
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -802,6 +804,47 @@ function RaceArena({
               fill="white"
             >
               {countdown}
+            </text>
+          </g>
+        )}
+
+        {/* Shuffle notification - slides in from top-left */}
+        {showShuffleNotification && (
+          <g className="shuffle-notification">
+            {/* Notification pill positioned in top-left corner */}
+            <rect
+              x={30}
+              y={40}
+              width={180}
+              height={70}
+              rx={35}
+              fill="#10b981"
+              opacity={0.95}
+              stroke="#ffffff"
+              strokeWidth={3}
+            />
+            {/* Dice emoji */}
+            <text
+              x={75}
+              y={75}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="40"
+              fontWeight={800}
+            >
+              🎲
+            </text>
+            {/* Text */}
+            <text
+              x={140}
+              y={75}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="20"
+              fontWeight={700}
+              fill="white"
+            >
+              Shuffled!
             </text>
           </g>
         )}

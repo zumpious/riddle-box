@@ -35,6 +35,7 @@ import backgroundMusic from './sounds/background.mp3'
 import horseWinSound from './sounds/winning.mp3'
 import jumpSound from './sounds/jump.mp3'
 import splashSound from './sounds/splash.mp3'
+import shuffleSound from './sounds/shuffle.mp3'
 
 // Constants
 import {
@@ -47,7 +48,9 @@ import {
   DEFAULT_SPRITE_SCALE,
   DEFAULT_HORSES,
   DEFAULT_HORSE_ATTRIBUTES,
+  DICE_ROLL_RANGES,
   RACE_STATUS,
+  RANGES,
   VARIANCE_MULTIPLIER,
   MIN_SPEED,
   SPRINT_THRESHOLD,
@@ -165,12 +168,17 @@ const HorseRacing = () => {
   const [introductionComplete, setIntroductionComplete] = useState(false)
   const [introNavDirection, setIntroNavDirection] = useState('right') // 'right' or 'left'
 
+  // Shuffle notification state
+  const [showShuffleNotification, setShowShuffleNotification] = useState(false)
+  const shuffleNotificationTimerRef = useRef(null)
+
   // Audio refs
   const raceStartAudioRef = useRef(null)
   const backgroundMusicRef = useRef(null)
   const horseWinAudioRef = useRef(null)
   const jumpAudioRef = useRef(null)
   const splashAudioRef = useRef(null)
+  const shuffleAudioRef = useRef(null)
   const baseBackgroundVolume = 0.15 // 15% base volume for background music
   const racingBackgroundVolume = 0.25 // 25% volume during race (10% louder)
 
@@ -197,6 +205,11 @@ const HorseRacing = () => {
     splashAudioRef.current = new Audio(splashSound)
     splashAudioRef.current.volume = 0.7 // 70% volume for splash sound
     console.log('✅ Splash sound loaded')
+
+    // Shuffle sound (for dice roll)
+    shuffleAudioRef.current = new Audio(shuffleSound)
+    shuffleAudioRef.current.volume = 0.6 // 60% volume for shuffle sound
+    console.log('✅ Shuffle sound loaded')
 
     // Background music - loop and autoplay
     backgroundMusicRef.current = new Audio(backgroundMusic)
@@ -281,7 +294,8 @@ const HorseRacing = () => {
     introductionComplete,
     introNavDirection,
     puddles,
-    currentTime: performance.now() // Share current time for animation sync
+    currentTime: performance.now(), // Share current time for animation sync
+    showShuffleNotification
   })
 
   // Spawn puddles after race starts - only once per race
@@ -493,7 +507,7 @@ const HorseRacing = () => {
               ) {
                 // Horse reached puddle - determine jump success
                 const agility = h.agility ?? 0.5
-                const randomFactor = rand() * 0.3 // Add some randomness (0-0.3)
+                const randomFactor = rand() * 0.4 // Add some randomness (0-0.4)
                 const jumpChance = agility + randomFactor
 
                 const jumpSuccess = jumpChance >= JUMP_SUCCESS_THRESHOLD
@@ -1006,6 +1020,63 @@ const HorseRacing = () => {
         return
       }
 
+      // 'r+d' to roll dice - randomize attributes of selected horses
+      if ((e.key === 'd' || e.key === 'D') && rKeyPressedRef.current) {
+        e.preventDefault()
+        console.log('🎲 Rolling dice for selected horses...')
+
+        // Play shuffle sound
+        if (shuffleAudioRef.current) {
+          shuffleAudioRef.current.currentTime = 0 // Reset to start
+          shuffleAudioRef.current.play().catch((err) => {
+            console.log('Shuffle sound play prevented:', err)
+          })
+        }
+
+        // Show shuffle notification
+        setShowShuffleNotification(true)
+
+        // Clear any existing timer
+        if (shuffleNotificationTimerRef.current) {
+          clearTimeout(shuffleNotificationTimerRef.current)
+        }
+
+        // Hide notification after 2 seconds
+        shuffleNotificationTimerRef.current = setTimeout(() => {
+          setShowShuffleNotification(false)
+        }, 2000)
+
+        // Get IDs of currently selected horses
+        const selectedIds = new Set(selectedCharacterIds)
+
+        // Apply dice roll to selected horses in character roster
+        setCharacterRoster((currentRoster) =>
+          currentRoster.map((horse) => {
+            // Only apply to selected horses
+            if (selectedIds.has(horse.id)) {
+              return applyDiceRoll(horse)
+            }
+            return horse
+          })
+        )
+
+        // Also update horses in current race if not racing
+        if (status === RACE_STATUS.IDLE || status === RACE_STATUS.FINISHED) {
+          setHorses((currentHorses) =>
+            currentHorses.map((horse) => {
+              // Only apply to selected horses
+              if (selectedIds.has(horse.id)) {
+                return applyDiceRoll(horse)
+              }
+              return horse
+            })
+          )
+        }
+
+        console.log('✅ Dice rolled! Attributes randomized for selected horses')
+        return
+      }
+
       // 'i' or 'I' to start/restart introduction sequence
       if (e.key === 'i' || e.key === 'I') {
         if (
@@ -1129,6 +1200,48 @@ const HorseRacing = () => {
     setSelectedCharacterIds((ids) => ids.filter((id) => id !== horseId))
   }
 
+  // Helper function: Apply balanced dice roll to a single horse
+  const applyDiceRoll = (horse) => {
+    // Step 1: Generate random modifiers for each attribute (-1 to +1)
+    const speedMod = (Math.random() - 0.5) * 2
+    const staminaMod = (Math.random() - 0.5) * 2
+    const agilityMod = (Math.random() - 0.5) * 2
+
+    // Step 2: Balance - normalize so sum = 0 (zero-sum game)
+    const sum = speedMod + staminaMod + agilityMod
+    const balancedSpeedMod = speedMod - sum / 3
+    const balancedStaminaMod = staminaMod - sum / 3
+    const balancedAgilityMod = agilityMod - sum / 3
+
+    // Step 3: Scale to appropriate ranges
+    const speedChange = balancedSpeedMod * DICE_ROLL_RANGES.SPEED_MAX_CHANGE
+    const staminaChange =
+      balancedStaminaMod * DICE_ROLL_RANGES.STAMINA_MAX_CHANGE
+    const agilityChange =
+      balancedAgilityMod * DICE_ROLL_RANGES.AGILITY_MAX_CHANGE
+
+    // Step 4: Apply with clamping to valid ranges
+    const newSpeed = Math.max(
+      RANGES.BASE_SPEED.min,
+      Math.min(RANGES.BASE_SPEED.max, horse.baseSpeed + speedChange)
+    )
+    const newStamina = Math.max(
+      RANGES.STAMINA.min,
+      Math.min(RANGES.STAMINA.max, horse.stamina + staminaChange)
+    )
+    const newAgility = Math.max(
+      RANGES.AGILITY.min,
+      Math.min(RANGES.AGILITY.max, (horse.agility ?? 0.5) + agilityChange)
+    )
+
+    return {
+      ...horse,
+      baseSpeed: newSpeed,
+      stamina: newStamina,
+      agility: newAgility
+    }
+  }
+
   return (
     <div className="horse-racing">
       <div className="horse-racing-inner">
@@ -1150,6 +1263,7 @@ const HorseRacing = () => {
                 introductionComplete={introductionComplete}
                 introNavDirection={introNavDirection}
                 puddles={puddles}
+                showShuffleNotification={showShuffleNotification}
               />
             </div>
 
@@ -1232,7 +1346,8 @@ const HorseRacing = () => {
               to navigate, then <strong>Space</strong> to race) · Press{' '}
               <strong>Space</strong> to start race directly · <strong>+</strong>
               /<strong>-</strong> to add/remove horses · <strong>R+A</strong> to
-              reset attributes · <strong>R+S</strong> to reset statistics
+              reset attributes · <strong>R+S</strong> to reset statistics ·{' '}
+              <strong>R+D</strong> to roll dice (randomize selected horses)
             </div>
           </div>
         </div>
