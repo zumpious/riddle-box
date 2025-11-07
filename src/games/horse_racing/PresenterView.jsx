@@ -24,6 +24,7 @@ const PresenterView = () => {
   const [introNavDirection, setIntroNavDirection] = useState('right')
   const [puddles, setPuddles] = useState([])
   const [isConnected, setIsConnected] = useState(false)
+  const [currentTime, setCurrentTime] = useState(null)
 
   const channelRef = useRef(null)
 
@@ -60,6 +61,7 @@ const PresenterView = () => {
           setIntroductionComplete(payload.introductionComplete || false)
           setIntroNavDirection(payload.introNavDirection || 'right')
           setPuddles(payload.puddles || [])
+          setCurrentTime(payload.currentTime || null)
           setIsConnected(true)
           break
 
@@ -80,6 +82,7 @@ const PresenterView = () => {
           setIntroductionComplete(payload.introductionComplete || false)
           setIntroNavDirection(payload.introNavDirection || 'right')
           setPuddles(payload.puddles || [])
+          setCurrentTime(payload.currentTime || null)
           setIsConnected(true)
           break
 
@@ -140,6 +143,7 @@ const PresenterView = () => {
           introductionComplete={introductionComplete}
           introNavDirection={introNavDirection}
           puddles={puddles}
+          syncedCurrentTime={currentTime}
         />
       </div>
 

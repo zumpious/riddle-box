@@ -264,7 +264,7 @@ const HorseRacing = () => {
   const totalDistance = lapLengthPx * laps
   const finishedCount = horses.filter((h) => h.finishedAtMs != null).length
 
-  // Broadcast state to presenter window
+  // Broadcast state to presenter window (including current time for animation sync)
   useBroadcastState({
     horses,
     totalDistance,
@@ -279,7 +279,8 @@ const HorseRacing = () => {
     introductionIndex,
     introductionComplete,
     introNavDirection,
-    puddles
+    puddles,
+    currentTime: performance.now() // Share current time for animation sync
   })
 
   // Spawn puddles after race starts - only once per race

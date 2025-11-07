@@ -35,6 +35,7 @@ const grassBg = loadGrassBackground()
  * @param {boolean} introductionComplete - Whether all introductions are complete
  * @param {string} introNavDirection - Direction of navigation ('right' or 'left')
  * @param {Array} puddles - Array of puddle obstacles
+ * @param {number} syncedCurrentTime - Synchronized current time from main window (for presenter mode)
  */
 function RaceArena({
   horses,
@@ -50,7 +51,8 @@ function RaceArena({
   introductionIndex,
   introductionComplete,
   introNavDirection,
-  puddles
+  puddles,
+  syncedCurrentTime
 }) {
   const arenaWrapRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -303,14 +305,16 @@ function RaceArena({
 
     let animFrame = 0
     const updateTime = () => {
-      const elapsed = (performance.now() - startTime) / 1000 // Convert to seconds
+      // Use syncedCurrentTime if available (presenter mode), otherwise use performance.now()
+      const currentTimeForCalc = syncedCurrentTime ?? performance.now()
+      const elapsed = (currentTimeForCalc - startTime) / 1000 // Convert to seconds
       setCurrentTime(elapsed)
       animFrame = requestAnimationFrame(updateTime)
     }
 
     animFrame = requestAnimationFrame(updateTime)
     return () => cancelAnimationFrame(animFrame)
-  }, [status, startTime])
+  }, [status, startTime, syncedCurrentTime])
 
   return (
     <div
@@ -651,7 +655,8 @@ function RaceArena({
               const rotDeg = (p.headingRad * 180) / Math.PI
 
               // Check if puddle should be disappearing
-              const now = performance.now()
+              // Use syncedCurrentTime if available (presenter mode), otherwise use performance.now()
+              const now = syncedCurrentTime ?? performance.now()
               const isDisappearing =
                 puddle.disappearAt && now >= puddle.disappearAt
 
@@ -685,8 +690,11 @@ function RaceArena({
           let animationTransform = ''
           if (h.jumping) {
             // Jump animation - arc up and down
+            // Use syncedCurrentTime if available (presenter mode), otherwise use performance.now()
+            const currentTimeForAnimation =
+              syncedCurrentTime ?? performance.now()
             const jumpProgress = h.jumpStartTime
-              ? Math.min(1, (performance.now() - h.jumpStartTime) / 600) // 600ms = JUMP_ANIMATION_DURATION in ms
+              ? Math.min(1, (currentTimeForAnimation - h.jumpStartTime) / 600) // 600ms = JUMP_ANIMATION_DURATION in ms
               : 0
             // Parabolic arc: reaches peak at 0.5, lands at 1.0
             const jumpHeight = -30 * Math.sin(jumpProgress * Math.PI) // Max height 30px up
