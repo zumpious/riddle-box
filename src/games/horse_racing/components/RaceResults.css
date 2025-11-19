@@ -1,0 +1,53 @@
+.horse-results {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.horse-results h2 {
+  margin: 0 0 0.75rem 0;
+}
+
+.results-list {
+  list-style: decimal;
+  margin: 0.25rem 0 0 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.place {
+  font-weight: 600;
+}
+
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.result-name {
+  font-weight: 500;
+}
+
+.result-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}

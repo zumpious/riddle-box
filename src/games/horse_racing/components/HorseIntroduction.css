@@ -1,0 +1,420 @@
+/* Horse Introduction Overlay */
+.horse-intro-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Introduction Card */
+.horse-intro-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  min-width: 720px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Entering animations */
+.horse-intro-card.entering-right {
+  animation: slideInFromRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.horse-intro-card.entering-left {
+  animation: slideInFromLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Center phase - subtle breathing animation */
+.horse-intro-card.center {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* Exiting animations */
+.horse-intro-card.exiting-left {
+  animation: slideOutToLeft 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+}
+
+.horse-intro-card.exiting-right {
+  animation: slideOutToRight 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19)
+    forwards;
+}
+
+/* Slide in from right (forward navigation) */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Slide in from left (backward navigation) */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Slide out to left (when going forward) */
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+}
+
+/* Slide out to right (when going backward) */
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* Subtle breathing animation when at center */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Horse Image */
+.intro-horse-image {
+  width: 500px;
+  height: 500px;
+  margin: 0 auto 2rem;
+  border-radius: 50%;
+  overflow: visible; /* Changed to allow number badge to overflow */
+  border: 5px solid var(--horse-color, #ffffff);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s backwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.intro-horse-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  border-radius: 50%; /* Clip image to circle */
+}
+
+.intro-horse-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  border-radius: 50%; /* Clip placeholder to circle */
+}
+
+/* Racing Number Badge */
+.intro-horse-number {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: popInNumber 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.5s
+    backwards;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes popInNumber {
+  from {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Horse Name Banner */
+.intro-horse-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  margin: 0 auto 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  animation: slideInName 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+}
+
+.intro-name-stars {
+  color: #fbbf24;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 2px 10px rgba(251, 191, 36, 0.5);
+}
+
+.intro-name-text {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideInName {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Stats Display */
+.intro-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.intro-stat-item {
+  background: color-mix(in srgb, var(--horse-color, #ffffff) 35%, transparent);
+  border: 2px solid
+    color-mix(in srgb, var(--horse-color, #ffffff) 25%, transparent);
+  border-radius: 16px;
+  padding: 0.75rem 1.25rem;
+  min-width: 100px;
+  animation: popInStat 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+}
+
+.intro-stat-item:nth-child(1) {
+  animation-delay: 0.7s;
+}
+
+.intro-stat-item:nth-child(2) {
+  animation-delay: 0.85s;
+}
+
+.intro-stat-item:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes popInStat {
+  from {
+    transform: scale(0) rotate(180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.intro-stat-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.intro-stat-label {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.intro-stat-value {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Progress Indicator */
+.intro-progress {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.intro-progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.intro-progress-dot.active {
+  background: var(--dot-color, #3b82f6);
+  box-shadow: 0 0 20px var(--dot-color, rgba(59, 130, 246, 0.8));
+  transform: scale(1.5);
+}
+
+.intro-progress-dot.complete {
+  background: var(--dot-color, #10b981);
+  box-shadow: 0 0 10px var(--dot-color, rgba(16, 185, 129, 0.5));
+}
+
+/* Completion Message */
+.intro-complete-message {
+  text-align: center;
+  animation: scaleIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.intro-complete-title {
+  font-size: 5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+}
+
+.intro-complete-subtitle {
+  font-size: 2rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.key-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 800;
+  margin: 0 0.5rem;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .horse-intro-card {
+    min-width: 90%;
+    padding: 2rem 1rem;
+  }
+
+  .intro-horse-image {
+    width: 220px;
+    height: 220px;
+    /* Maintain flexbox centering on mobile */
+  }
+
+  .intro-name-text {
+    font-size: 1.4rem;
+  }
+
+  .intro-name-stars {
+    font-size: 1rem;
+  }
+
+  .intro-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .intro-complete-title {
+    font-size: 3rem;
+  }
+
+  .intro-complete-subtitle {
+    font-size: 1.5rem;
+  }
+}

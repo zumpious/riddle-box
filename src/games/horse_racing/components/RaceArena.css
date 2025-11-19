@@ -1,0 +1,245 @@
+.horse-arena {
+  position: relative;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  width: 1200px; /* landscape arena width */
+  margin: 0 auto; /* center the arena block */
+}
+
+.arena-wrap {
+  position: relative;
+  width: 100%;
+  overflow: auto;
+}
+
+/* Fullscreen mode */
+.arena-wrap.fullscreen {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arena-wrap:fullscreen {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arena-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Fullscreen button */
+.fullscreen-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fullscreen-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+.fullscreen-btn svg {
+  display: block;
+  color: #334155;
+}
+
+/* In fullscreen mode, make button slightly more visible */
+.arena-wrap.fullscreen .fullscreen-btn,
+.arena-wrap:fullscreen .fullscreen-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.arena-wrap.fullscreen .fullscreen-btn:hover,
+.arena-wrap:fullscreen .fullscreen-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.arena-wrap.fullscreen .fullscreen-btn svg,
+.arena-wrap:fullscreen .fullscreen-btn svg {
+  color: #ffffff;
+}
+
+/* Sweat drop animations - slower with variance */
+
+/* Left drop animations - 3 variants for randomness */
+@keyframes sweatDropFallLeft1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-18px, 70px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallLeft2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-22px, 75px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallLeft3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-15px, 68px);
+    opacity: 0;
+  }
+}
+
+/* Right drop animations - 3 variants for randomness */
+@keyframes sweatDropFallRight1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(18px, 70px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallRight2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(22px, 75px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweatDropFallRight3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(15px, 68px);
+    opacity: 0;
+  }
+}
+
+.sweat-drop {
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+/* Left variants - slower (1.8-2.2s) */
+.sweat-drop-left-1 {
+  animation: sweatDropFallLeft1 1.8s infinite;
+}
+
+.sweat-drop-left-2 {
+  animation: sweatDropFallLeft2 2s infinite;
+}
+
+.sweat-drop-left-3 {
+  animation: sweatDropFallLeft3 2.2s infinite;
+}
+
+/* Right variants - slower (1.8-2.2s) */
+.sweat-drop-right-1 {
+  animation: sweatDropFallRight1 1.8s infinite;
+}
+
+.sweat-drop-right-2 {
+  animation: sweatDropFallRight2 2s infinite;
+}
+
+.sweat-drop-right-3 {
+  animation: sweatDropFallRight3 2.2s infinite;
+}
+
+/* Dust cloud animations - now handled by SVG SMIL animations */
+/* The dust emitter is a self-contained SVG with built-in animations */
+/* No CSS animations needed! 🎉 */
+
+/* Respect reduced-motion preference for dust animations */
+@media (prefers-reduced-motion: reduce) {
+  .dust-anim > * {
+    animation: none !important;
+  }
+  /* Hide dust entirely if user prefers reduced motion */
+  .dust-clouds {
+    display: none;
+  }
+}
+
+/* Shuffle notification animation - slide in from top, pause, slide out */
+.shuffle-notification {
+  animation: shuffleSlideInOut 2s ease-in-out;
+}
+
+@keyframes shuffleSlideInOut {
+  0% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}

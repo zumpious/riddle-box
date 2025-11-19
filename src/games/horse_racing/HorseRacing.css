@@ -1,0 +1,159 @@
+.horse-racing {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  overflow-x: hidden;
+}
+
+.horse-racing-inner {
+  margin: 0 auto;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.horse-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  padding-top: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .horse-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.horse-col-left,
+.horse-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.horse-col-right {
+  width: 1200px;
+  margin: 0 auto; /* center below arena */
+}
+
+.horse-col-left {
+  width: 100%;
+}
+
+.horse-arena {
+  position: relative;
+  width: 100%;
+}
+
+.horse-settings,
+.horse-panels {
+  width: 1200px;
+  margin: 0 auto; /* center below arena */
+}
+
+.horse-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .horse-panels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Common button styles */
+.horse-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  transition: all 0.2s ease;
+}
+
+.horse-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.horse-btn.primary {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.horse-btn.primary:hover {
+  background: #1e293b;
+}
+
+.horse-btn.intro {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.horse-btn.intro:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.horse-btn.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.horse-btn.align-right {
+  justify-self: end;
+}
+
+/* Common hint text */
+.hint {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+/* Tip section */
+.horse-tip {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
+
+/* Open Presenter Window Button */
+.open-presenter-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.open-presenter-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+}
+
+.open-presenter-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}

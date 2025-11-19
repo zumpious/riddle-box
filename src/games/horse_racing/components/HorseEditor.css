@@ -1,0 +1,131 @@
+.horse-editor {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.horse-editor h2 {
+  margin: 0 0 0.75rem 0;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.editor-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.editor-row select,
+.editor-row input {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+}
+
+.editor-row .color-input {
+  width: 64px;
+  height: 40px;
+}
+
+.editor-row .img-preview {
+  height: 40px;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px;
+  background: #fff;
+}
+
+.editor-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.racing-number-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.racing-number-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 0.75rem;
+  border-radius: 16px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.racing-number-text {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.slider input[type='range'] {
+  width: 100%;
+}
+
+.editor-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editor-advanced .editor-textarea {
+  width: 100%;
+  min-height: 96px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* Statistics Section */
+.editor-stats {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.editor-stats-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.editor-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.editor-stats-reset {
+  margin-top: 0.5rem;
+  width: 100%;
+}
